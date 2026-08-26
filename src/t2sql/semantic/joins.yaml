@@ -1,0 +1,87 @@
+# The join graph as edges. Used by Phase 1.1 retrieval to expand a
+# table-relevance hit by one hop so bridge tables get pulled in even when
+# they weren't directly matched by the question.
+
+- from_table: users
+  from_column: customer_id
+  to_table: customers
+  to_column: id
+  "on": "users.customer_id = customers.id"
+  cardinality: many_to_one
+
+- from_table: addresses
+  from_column: customer_id
+  to_table: customers
+  to_column: id
+  "on": "addresses.customer_id = customers.id"
+  cardinality: many_to_one
+
+- from_table: products
+  from_column: category_id
+  to_table: categories
+  to_column: id
+  "on": "products.category_id = categories.id"
+  cardinality: many_to_one
+
+- from_table: orders
+  from_column: customer_id
+  to_table: customers
+  to_column: id
+  "on": "orders.customer_id = customers.id"
+  cardinality: many_to_one
+
+- from_table: orders
+  from_column: user_id
+  to_table: users
+  to_column: id
+  "on": "orders.user_id = users.id"
+  cardinality: many_to_one
+
+- from_table: orders
+  from_column: shipping_address_id
+  to_table: addresses
+  to_column: id
+  "on": "orders.shipping_address_id = addresses.id"
+  cardinality: many_to_one
+
+- from_table: order_items
+  from_column: order_id
+  to_table: orders
+  to_column: id
+  "on": "order_items.order_id = orders.id"
+  cardinality: many_to_one
+
+- from_table: order_items
+  from_column: product_id
+  to_table: products
+  to_column: id
+  "on": "order_items.product_id = products.id"
+  cardinality: many_to_one
+
+- from_table: payments
+  from_column: order_id
+  to_table: orders
+  to_column: id
+  "on": "payments.order_id = orders.id"
+  cardinality: many_to_one
+
+- from_table: refunds
+  from_column: order_id
+  to_table: orders
+  to_column: id
+  "on": "refunds.order_id = orders.id"
+  cardinality: many_to_one
+
+- from_table: refunds
+  from_column: order_item_id
+  to_table: order_items
+  to_column: id
+  "on": "refunds.order_item_id = order_items.id"
+  cardinality: many_to_one
+
+- from_table: sessions
+  from_column: user_id
+  to_table: users
+  to_column: id
+  "on": "sessions.user_id = users.id"
+  cardinality: many_to_one

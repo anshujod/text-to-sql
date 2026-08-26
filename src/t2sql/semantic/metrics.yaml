@@ -1,0 +1,98 @@
+# Metric definitions. `sql_expression` is a self-contained, qualified aggregate
+# expression (no aliases) assuming the tables listed in `requires_join` are
+# present in the query -- validate_semantic_layer() parses it with sqlglot and
+# checks every table.column reference against the live schema.
+#
+# `synonyms` deliberately overlap across revenue_net / order_count /
+# session_count for "best"/"top"/"most valuable" -- Phase 3.1's parse_intent
+# is expected to resolve an ambiguous term like "best" into candidates from
+# every metric whose synonym list contains it.
+
+revenue_gross:
+  sql_expression: "SUM(payments.amount) FILTER (WHERE payments.status = 'succeeded')"
+  description: >
+    Total amount collected, before refunds. Defaults to USD-denominated
+    payments only (see defaults.yaml) -- payments.currency varies, and
+    summing across currencies without conversion is meaningless. A true
+    multi-currency rollup needs FX conversion, which is out of scope for v1
+    (see docs/taxonomy.md, METRIC type).
+  synonyms: ["gross revenue", "gross sales", "total sales before refunds"]
+  default_filters: ["payments.currency = 'USD'"]
+  grain: order
+  requires_join: [orders, payments]
+
+revenue_net:
+  sql_expression: >-
+    COALESCE(SUM(payments.amount) FILTER (WHERE payments.status = 'succeeded'), 0)
+    - COALESCE(SUM(refunds.amount), 0)
+  description: >
+    Gross revenue minus refunds. This is what "revenue" means by default (see
+    defaults.yaml) unless the question says otherwise. Same USD-only default
+    and multi-currency caveat as revenue_gross. Implementation note: payments
+    and refunds are separate fact tables at the order grain -- join each to
+    orders and aggregate in separate CTEs before subtracting, don't join both
+    directly to the same order row, or multiple payments/refunds per order
+    will fan out and double-count.
+  synonyms: ["revenue", "sales", "net revenue", "best", "top", "most valuable", "highest spending"]
+  default_filters: ["payments.currency = 'USD'"]
+  grain: order
+  requires_join: [orders, payments, refunds]
+
+order_count:
+  sql_expression: "COUNT(DISTINCT orders.id)"
+  description: >
+    Number of orders placed. Defaults to excluding cancelled orders (they
+    never became a sale) but including returned orders (the sale happened,
+    even though it was later reversed) -- a SCOPE ambiguity, default +
+    disclose per the taxonomy.
+  synonyms: ["number of orders", "order count", "how many orders", "best", "top", "most orders", "most valuable"]
+  default_filters: ["orders.status != 'cancelled'"]
+  grain: order
+  requires_join: [orders]
+
+unit_count:
+  sql_expression: "COALESCE(SUM(order_items.quantity), 0)"
+  description: >
+    Total units sold (line-item quantity), not order count -- a different
+    grain. "Sales" is ambiguous between order_count and unit_count (GRAIN
+    ambiguity).
+  synonyms: ["units sold", "items sold", "quantity sold"]
+  default_filters: ["orders.status != 'cancelled'"]
+  grain: order_item
+  requires_join: [orders, order_items]
+
+aov:
+  sql_expression: >-
+    COALESCE(SUM(payments.amount) FILTER (WHERE payments.status = 'succeeded'), 0)
+    / NULLIF(COUNT(DISTINCT orders.id), 0)
+  description: >
+    Average order value, computed per order (total revenue / order count).
+    "Average order value" is itself a GRAIN ambiguity -- per order, per
+    customer, or per month are all defensible readings; this is the default.
+  synonyms: ["average order value", "aov", "average basket size", "average spend per order"]
+  default_filters: ["orders.status != 'cancelled'", "payments.currency = 'USD'"]
+  grain: order
+  requires_join: [orders, payments]
+
+session_count:
+  sql_expression: "COUNT(DISTINCT sessions.id)"
+  description: >
+    Number of browsing/login sessions -- an engagement metric, independent of
+    purchases. "Visits" or "repeat visits" should map here, not to orders.
+  synonyms: ["visits", "sessions", "number of visits", "best", "top", "most active", "most valuable"]
+  default_filters: []
+  grain: session
+  requires_join: [sessions]
+
+distinct_active_customers:
+  sql_expression: "COUNT(DISTINCT orders.customer_id)"
+  description: >
+    Distinct customers with at least one (non-cancelled) order in the period
+    -- "active" here means "purchased," not "logged in." A session-based
+    reading of "active" is a separate, defensible interpretation (see
+    session_count) and should be treated as an ENTITY/SCOPE ambiguity if the
+    question is ambiguous between them.
+  synonyms: ["active customers", "unique customers", "distinct customers"]
+  default_filters: ["orders.status != 'cancelled'"]
+  grain: customer
+  requires_join: [orders, customers]

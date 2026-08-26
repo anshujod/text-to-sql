@@ -1,0 +1,27 @@
+# House rules: what the system assumes when a question doesn't specify. Per
+# Phase 3.5, every default actually applied must be disclosed, never silent.
+
+result_shape:
+  default_limit: 10
+
+scope:
+  exclude_internal_accounts: true
+  exclude_soft_deleted: true
+
+metric:
+  revenue_default: revenue_net
+
+temporal:
+  # Anchored to the data itself, not wall-clock now() -- the seed data
+  # (Phase 0.3) is a fixed historical window ending 2025-12-31, and this is
+  # exactly the anchor scripts/generate_seed.py was built around: the Black
+  # Friday spike sits inside "last calendar month" but outside "trailing 30
+  # days" relative to max(orders.created_at). Anchoring to wall-clock now()
+  # would silently break this the moment real time moves past the seed
+  # window, and make every demo run look wrong.
+  anchor: max_order_created_at
+  last_month: previous_calendar_month
+  last_month_definition: >-
+    [date_trunc('month', anchor - interval '1 month'), date_trunc('month', anchor))
+
+always_disclose_defaults: true

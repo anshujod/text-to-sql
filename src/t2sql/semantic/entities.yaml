@@ -1,0 +1,202 @@
+# Table/column descriptions, grain, keys, soft-delete columns, and enum
+# values. validate_semantic_layer() checks every table and column here
+# against the live database.
+
+customers:
+  description: >
+    A real-world customer entity (one person or company). Distinct from
+    users: a single customer can have several login accounts in users.
+    "Customer" in a question is ambiguous between this table and users
+    (ENTITY ambiguity) -- ask if it matters, since the two have different
+    grain.
+  grain: one row per customer entity
+  primary_key: id
+  foreign_keys: []
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    name: Customer or company name.
+    created_at: Signup date. May precede the first order (customers can exist before ordering).
+
+users:
+  description: Login accounts. Several can belong to one customer.
+  grain: one row per login account
+  primary_key: id
+  foreign_keys:
+    - column: customer_id
+      references_table: customers
+      references_column: id
+  soft_delete_column: deleted_at
+  columns:
+    id: Surrogate primary key.
+    customer_id: The customer entity this login belongs to.
+    email: Login email, unique.
+    is_internal: True for staff/test accounts. Excluded from customer-facing analytics by default (see defaults.yaml).
+    created_at: When the login was created.
+    deleted_at: Soft-delete marker. NULL means the account is active.
+
+addresses:
+  description: Shipping/billing addresses. A customer may have more than one.
+  grain: one row per address
+  primary_key: id
+  foreign_keys:
+    - column: customer_id
+      references_table: customers
+      references_column: id
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    customer_id: Owning customer.
+    line1: Street address line 1.
+    line2: Street address line 2, optional.
+    city: City.
+    region: State/province, US addresses only.
+    postal_code: Postal/ZIP code.
+    country: ISO 3166-1 alpha-2 country code.
+    is_default: Whether this is the customer's default address.
+    created_at: When the address was added.
+
+categories:
+  description: Product categories. Flat, no hierarchy.
+  grain: one row per category
+  primary_key: id
+  foreign_keys: []
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    name: Category name, unique.
+    created_at: When the category was created.
+
+products:
+  description: Product catalog.
+  grain: one row per product
+  primary_key: id
+  foreign_keys:
+    - column: category_id
+      references_table: categories
+      references_column: id
+  soft_delete_column: deleted_at
+  columns:
+    id: Surrogate primary key.
+    category_id: Product's category.
+    name: Product name.
+    price: >
+      Current list price. Prices change over time; do not use this for
+      historical revenue -- use order_items.unit_price, the price actually
+      charged (METRIC ambiguity: which price is "revenue"?).
+    created_at: When the product was added to the catalog.
+    deleted_at: Soft-delete marker for discontinued products. NULL means active.
+
+orders:
+  description: "Order header grain: one row per order. See order_items for line grain."
+  grain: one row per order
+  primary_key: id
+  foreign_keys:
+    - column: customer_id
+      references_table: customers
+      references_column: id
+    - column: user_id
+      references_table: users
+      references_column: id
+    - column: shipping_address_id
+      references_table: addresses
+      references_column: id
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    customer_id: Owning customer entity, denormalized from users.customer_id for convenience.
+    user_id: The login account that placed the order.
+    shipping_address_id: Delivery address for this order.
+    status: >
+      pending, paid, shipped, delivered, cancelled, returned. Whether
+      cancelled/returned orders count as sales is a SCOPE ambiguity, not
+      implicit in the schema -- see defaults.yaml and taxonomy.md.
+    created_at: When the order was placed.
+  enum_values:
+    status: [pending, paid, shipped, delivered, cancelled, returned]
+
+order_items:
+  description: "Order line grain: one row per product per order."
+  grain: one row per (order, product) line item
+  primary_key: id
+  foreign_keys:
+    - column: order_id
+      references_table: orders
+      references_column: id
+    - column: product_id
+      references_table: products
+      references_column: id
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    order_id: Parent order.
+    product_id: Product purchased.
+    quantity: Units of this product in this order.
+    unit_price: >
+      Price actually charged at time of purchase, in the base currency. May
+      differ from the current products.price -- use this for historical
+      revenue, not products.price.
+
+payments:
+  description: Payment attempts against an order. Usually one per paid order.
+  grain: one row per payment attempt
+  primary_key: id
+  foreign_keys:
+    - column: order_id
+      references_table: orders
+      references_column: id
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    order_id: Order being paid for.
+    amount: >
+      Amount charged, denominated in `currency` -- do not sum across rows
+      with different currencies without converting first (METRIC ambiguity:
+      revenue in which currency?).
+    currency: ISO 4217 currency code.
+    status: succeeded, failed, or pending. Only succeeded payments represent realized revenue.
+    paid_at: When the payment was attempted.
+  enum_values:
+    status: [succeeded, failed, pending]
+
+refunds:
+  description: >
+    Refunds against an order. Partial refunds allowed -- amount may be less
+    than the order total. Separate refunds table is what makes gross vs
+    net-of-refunds revenue a real, defensible METRIC ambiguity.
+  grain: one row per refund
+  primary_key: id
+  foreign_keys:
+    - column: order_id
+      references_table: orders
+      references_column: id
+    - column: order_item_id
+      references_table: order_items
+      references_column: id
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    order_id: Order being refunded.
+    order_item_id: NULL for order-level refunds; set for refunds against a specific line item.
+    amount: Amount refunded, in `currency`.
+    currency: ISO 4217 currency code. Matches the related payment's currency.
+    reason: Free-text refund reason, optional.
+    refunded_at: When the refund was issued.
+
+sessions:
+  description: >
+    Browsing/login sessions, independent of purchases. Basis for engagement
+    metrics like session_count and repeat-visit rate, distinct from
+    order-based metrics.
+  grain: one row per session
+  primary_key: id
+  foreign_keys:
+    - column: user_id
+      references_table: users
+      references_column: id
+  soft_delete_column: null
+  columns:
+    id: Surrogate primary key.
+    user_id: The login account that started the session.
+    started_at: Session start time.
+    ended_at: Session end time. NULL if the session never closed out (abandoned/ongoing).
