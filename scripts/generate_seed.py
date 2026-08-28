@@ -1,7 +1,6 @@
 """Deterministic synthetic seed data generator.
 
-Generates ~18 months of e-commerce history with the ambiguity traps from
-PLAN.md Phase 0.3 built in *by construction*, not by luck:
+Generates ~18 months of e-commerce history with the ambiguity traps:
 
 - customer "archetypes" (whale / frequent_bargain / internal / normal) drive
   order count and order value independently, so top-10-by-revenue and

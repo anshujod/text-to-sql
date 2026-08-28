@@ -31,7 +31,7 @@ COMMENT ON TABLE users IS 'Login accounts. Several can belong to one customer.';
 COMMENT ON COLUMN users.customer_id IS 'The customer entity this login belongs to.';
 COMMENT ON COLUMN users.is_internal IS
     'True for staff/test accounts. Excluded from customer-facing analytics by '
-    'default (see semantic/defaults.yaml, Phase 0.4).';
+    'default (see semantic/defaults.yaml.';
 COMMENT ON COLUMN users.deleted_at IS 'Soft-delete marker. NULL means the account is active.';
 
 CREATE INDEX idx_users_customer_id ON users(customer_id);
