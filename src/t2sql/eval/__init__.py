@@ -10,6 +10,13 @@ from t2sql.eval.metrics import (
     unnecessary_ask_rate,
 )
 from t2sql.eval.runner import ItemResult, RunSummary, run_eval
+from t2sql.eval.simulated_user import (
+    SimulatedConversationResult,
+    SimulatedTurn,
+    UserStrategy,
+    simulate_dataset,
+    simulate_item,
+)
 
 __all__ = [
     "DatasetItem",
@@ -26,4 +33,9 @@ __all__ = [
     "end_to_end_correctness",
     "silent_error_rate",
     "bootstrap_ci",
+    "SimulatedConversationResult",
+    "SimulatedTurn",
+    "UserStrategy",
+    "simulate_dataset",
+    "simulate_item",
 ]
