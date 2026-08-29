@@ -3,10 +3,15 @@
 # present in the query -- validate_semantic_layer() parses it with sqlglot and
 # checks every table.column reference against the live schema.
 #
-# `synonyms` deliberately overlap across revenue_net / order_count /
-# session_count for "best"/"top"/"most valuable" -- Phase 3.1's parse_intent
-# is expected to resolve an ambiguous term like "best" into candidates from
-# every metric whose synonym list contains it.
+# `synonyms` deliberately overlap across several metrics for every
+# genuinely superlative/vague success term -- Phase 3.1's parse_intent
+# resolves a term like "best" into candidates from every metric whose
+# synonym list contains it, and the multi-candidate result *is* the METRIC
+# ambiguity signal. Four overlap groups, by (taxonomy.md) example:
+#   - "best"/"top"/"most valuable"/"biggest": revenue_net, order_count, session_count
+#   - "best seller"/"outselling"/"revenue driver": revenue_net, unit_count
+#   - "revenue"/"total revenue": revenue_gross, revenue_net (gross vs net)
+#   - "popular": revenue_net, distinct_active_customers
 
 revenue_gross:
   sql_expression: "SUM(payments.amount) FILTER (WHERE payments.status = 'succeeded')"
@@ -16,7 +21,7 @@ revenue_gross:
     summing across currencies without conversion is meaningless. A true
     multi-currency rollup needs FX conversion, which is out of scope for v1
     (see docs/taxonomy.md, METRIC type).
-  synonyms: ["gross revenue", "gross sales", "total sales before refunds"]
+  synonyms: ["gross revenue", "gross sales", "total sales before refunds", "revenue", "total revenue"]
   default_filters: ["payments.currency = 'USD'"]
   grain: order
   requires_join: [orders, payments]
@@ -33,7 +38,12 @@ revenue_net:
     orders and aggregate in separate CTEs before subtracting, don't join both
     directly to the same order row, or multiple payments/refunds per order
     will fan out and double-count.
-  synonyms: ["revenue", "sales", "net revenue", "best", "top", "most valuable", "highest spending"]
+  synonyms: [
+    "revenue", "sales", "net revenue", "best", "top", "most valuable", "highest spending",
+    "biggest", "popular", "most popular", "best seller", "best-selling", "top seller",
+    "top performer", "outselling", "revenue driver", "prioritize restocking",
+    "biggest spender", "biggest spenders", "spent the most", "generated the most value",
+  ]
   default_filters: ["payments.currency = 'USD'"]
   grain: order
   requires_join: [orders, payments, refunds]
@@ -45,7 +55,10 @@ order_count:
     never became a sale) but including returned orders (the sale happened,
     even though it was later reversed) -- a SCOPE ambiguity, default +
     disclose per the taxonomy.
-  synonyms: ["number of orders", "order count", "how many orders", "best", "top", "most orders", "most valuable"]
+  synonyms: [
+    "number of orders", "order count", "how many orders", "best", "top", "most orders",
+    "most valuable", "biggest", "spent the most", "generated the most value",
+  ]
   default_filters: ["orders.status != 'cancelled'"]
   grain: order
   requires_join: [orders]
@@ -56,7 +69,11 @@ unit_count:
     Total units sold (line-item quantity), not order count -- a different
     grain. "Sales" is ambiguous between order_count and unit_count (GRAIN
     ambiguity).
-  synonyms: ["units sold", "items sold", "quantity sold"]
+  synonyms: [
+    "units sold", "items sold", "quantity sold", "best seller", "best-selling", "top seller",
+    "top performer", "outselling", "revenue driver", "prioritize restocking",
+    "biggest spender", "biggest spenders",
+  ]
   default_filters: ["orders.status != 'cancelled'"]
   grain: order_item
   requires_join: [orders, order_items]
@@ -79,7 +96,7 @@ session_count:
   description: >
     Number of browsing/login sessions -- an engagement metric, independent of
     purchases. "Visits" or "repeat visits" should map here, not to orders.
-  synonyms: ["visits", "sessions", "number of visits", "best", "top", "most active", "most valuable"]
+  synonyms: ["visits", "sessions", "number of visits", "best", "top", "most active", "most valuable", "biggest"]
   default_filters: []
   grain: session
   requires_join: [sessions]
@@ -92,7 +109,7 @@ distinct_active_customers:
     reading of "active" is a separate, defensible interpretation (see
     session_count) and should be treated as an ENTITY/SCOPE ambiguity if the
     question is ambiguous between them.
-  synonyms: ["active customers", "unique customers", "distinct customers"]
+  synonyms: ["active customers", "unique customers", "distinct customers", "popular", "most popular"]
   default_filters: ["orders.status != 'cancelled'"]
   grain: customer
   requires_join: [orders, customers]

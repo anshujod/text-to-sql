@@ -13,6 +13,7 @@ customers:
   primary_key: id
   foreign_keys: []
   soft_delete_column: null
+  synonyms: ["customer", "customers", "client", "clients", "people", "person", "spender", "spenders"]
   columns:
     id: Surrogate primary key.
     name: Customer or company name.
@@ -27,6 +28,12 @@ users:
       references_table: customers
       references_column: id
   soft_delete_column: deleted_at
+  # "customer"/"customers" deliberately overlaps with the customers entity
+  # above -- see the ENTITY note on the Entity model in semantic/models.py.
+  synonyms: [
+    "user", "users", "login", "logins", "account", "accounts", "customer", "customers",
+    "people", "person", "spender", "spenders",
+  ]
   columns:
     id: Surrogate primary key.
     customer_id: The customer entity this login belongs to.
@@ -44,6 +51,7 @@ addresses:
       references_table: customers
       references_column: id
   soft_delete_column: null
+  synonyms: ["address", "addresses", "shipping address", "location"]
   columns:
     id: Surrogate primary key.
     customer_id: Owning customer.
@@ -62,6 +70,7 @@ categories:
   primary_key: id
   foreign_keys: []
   soft_delete_column: null
+  synonyms: ["category", "categories"]
   columns:
     id: Surrogate primary key.
     name: Category name, unique.
@@ -76,6 +85,7 @@ products:
       references_table: categories
       references_column: id
   soft_delete_column: deleted_at
+  synonyms: ["product", "products", "sku", "skus"]
   columns:
     id: Surrogate primary key.
     category_id: Product's category.
@@ -102,6 +112,7 @@ orders:
       references_table: addresses
       references_column: id
   soft_delete_column: null
+  synonyms: ["order", "orders", "purchase", "purchases", "sale", "sales"]
   columns:
     id: Surrogate primary key.
     customer_id: Owning customer entity, denormalized from users.customer_id for convenience.
@@ -127,6 +138,7 @@ order_items:
       references_table: products
       references_column: id
   soft_delete_column: null
+  synonyms: ["line item", "line items", "order item", "order items"]
   columns:
     id: Surrogate primary key.
     order_id: Parent order.
@@ -146,6 +158,7 @@ payments:
       references_table: orders
       references_column: id
   soft_delete_column: null
+  synonyms: ["payment", "payments", "transaction", "transactions"]
   columns:
     id: Surrogate primary key.
     order_id: Order being paid for.
@@ -174,6 +187,7 @@ refunds:
       references_table: order_items
       references_column: id
   soft_delete_column: null
+  synonyms: ["refund", "refunds", "refunded amount"]
   columns:
     id: Surrogate primary key.
     order_id: Order being refunded.
@@ -195,6 +209,7 @@ sessions:
       references_table: users
       references_column: id
   soft_delete_column: null
+  synonyms: ["session", "sessions", "visit", "visits"]
   columns:
     id: Surrogate primary key.
     user_id: The login account that started the session.
