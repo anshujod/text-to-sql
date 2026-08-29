@@ -92,7 +92,7 @@ TIME_PHRASE_CANDIDATES: list[tuple[list[str], list[str]]] = [
     (["recently", "lately"], ["trailing_7_days", "trailing_30_days"]),
 ]
 
-_LIMIT_RE = re.compile(r"\b(?:top|first|bottom|limit)\s+(\d+)\b", re.IGNORECASE)
+_LIMIT_RE = re.compile(r"\b(?:top|first|bottom|limit|the)\s+(\d+)\b", re.IGNORECASE)
 _RANKED_NO_COUNT_TERMS = ["top", "best", "highest", "most", "greatest", "largest", "leading"]
 _DESC_SORT_TERMS = ["top", "best", "highest", "most", "greatest", "largest", "biggest"]
 _ASC_SORT_TERMS = ["bottom", "worst", "lowest", "least", "smallest"]
