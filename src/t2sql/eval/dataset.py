@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from t2sql.clarify.taxonomy import AmbiguityType
@@ -19,6 +21,11 @@ from t2sql.clarify.taxonomy import AmbiguityType
 class GoldInterpretation(BaseModel):
     sql: str
     interpretation: str = ""
+    # Populated for ambiguous items (Task 2.3): `label` is the short name of
+    # this reading (e.g. "revenue_net"), `clarification_answer` is what the
+    # simulated user (Task 4.2) types back when asked to disambiguate.
+    label: str = ""
+    clarification_answer: str = ""
 
 
 class DatasetItem(BaseModel):
@@ -28,6 +35,12 @@ class DatasetItem(BaseModel):
     ambiguity_types: list[AmbiguityType] = Field(default_factory=list)
     gold_sql: list[GoldInterpretation]
     notes: str = ""
+    # Task 2.3: the annotator's prediction of whether the interpretations
+    # actually produce meaningfully different result sets. `low` marks the
+    # deliberate near-miss items -- superficially ambiguous phrasing whose
+    # interpretations converge anyway. Task 3.4 validates this prediction
+    # against the measured DivergenceReport.
+    expected_divergence: Literal["high", "low"] | None = None
 
 
 def load_dataset(path: Path) -> list[DatasetItem]:
