@@ -1,4 +1,5 @@
 from t2sql.clarify.detector import DetectedAmbiguity, detect_ambiguities
+from t2sql.clarify.divergence import DivergenceReport, ResultKind, classify_result, compute_divergence_report
 from t2sql.clarify.intent import Intent, Slot, parse_intent
 from t2sql.clarify.self_consistency import (
     DivergenceResult,
@@ -27,4 +28,8 @@ __all__ = [
     "compute_divergence",
     "decide",
     "detect_self_consistency",
+    "DivergenceReport",
+    "ResultKind",
+    "classify_result",
+    "compute_divergence_report",
 ]
