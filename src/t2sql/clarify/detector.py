@@ -69,7 +69,7 @@ class DetectedAmbiguity(BaseModel):
     slot: str
     candidates: list[str]
     confidence: float
-    source: Literal["rule"] = "rule"
+    source: Literal["rule", "self_consistency"] = "rule"
 
 
 # Phrases that mean the question has already spelled out its own metric

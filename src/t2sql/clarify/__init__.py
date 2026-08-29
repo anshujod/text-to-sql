@@ -1,5 +1,13 @@
 from t2sql.clarify.detector import DetectedAmbiguity, detect_ambiguities
 from t2sql.clarify.intent import Intent, Slot, parse_intent
+from t2sql.clarify.self_consistency import (
+    DivergenceResult,
+    QuerySignature,
+    compute_divergence,
+    decide,
+    detect_self_consistency,
+    extract_signature,
+)
 from t2sql.clarify.taxonomy import TAXONOMY, AmbiguityType, AmbiguityTypeSpec, ClarificationPolicy, get_spec
 
 __all__ = [
@@ -13,4 +21,10 @@ __all__ = [
     "parse_intent",
     "DetectedAmbiguity",
     "detect_ambiguities",
+    "QuerySignature",
+    "DivergenceResult",
+    "extract_signature",
+    "compute_divergence",
+    "decide",
+    "detect_self_consistency",
 ]
