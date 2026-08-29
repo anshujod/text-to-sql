@@ -9,6 +9,7 @@ from t2sql.clarify.policy import (
     SessionState,
     decide_clarification,
 )
+from t2sql.clarify.question import humanize_candidate, render_clarification_question
 from t2sql.clarify.self_consistency import (
     DivergenceResult,
     QuerySignature,
@@ -17,6 +18,7 @@ from t2sql.clarify.self_consistency import (
     detect_self_consistency,
     extract_signature,
 )
+from t2sql.clarify.session import ClarificationTurn, Session, effective_slots, process_turn
 from t2sql.clarify.taxonomy import TAXONOMY, AmbiguityType, AmbiguityTypeSpec, ClarificationPolicy, get_spec
 
 __all__ = [
@@ -46,4 +48,10 @@ __all__ = [
     "PolicyConfig",
     "SessionState",
     "decide_clarification",
+    "humanize_candidate",
+    "render_clarification_question",
+    "ClarificationTurn",
+    "Session",
+    "effective_slots",
+    "process_turn",
 ]

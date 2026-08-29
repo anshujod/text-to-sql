@@ -81,6 +81,7 @@ class DivergenceReport(BaseModel):
     pairwise_matrix: list[list[float]]
     result_kind_per_interpretation: dict[str, ResultKind]
     sample_rows_per_interpretation: dict[str, list[list[Any]]]
+    columns_per_interpretation: dict[str, list[str]] = Field(default_factory=dict)
     errors: dict[str, str] = Field(default_factory=dict)
 
 
@@ -267,11 +268,16 @@ def compute_divergence_report(
 
     kinds: dict[str, ResultKind] = {}
     samples: dict[str, list[list[Any]]] = {}
+    columns: dict[str, list[str]] = {}
     errors: dict[str, str] = {}
     for label in labels:
         r = results[label]
         kinds[label] = classify_result(r.result_set, r.column_types) if r.ok else ResultKind.ERROR
-        samples[label] = r.result_set.rows[:5] if r.ok and r.result_set else []
+        # capped at top_n, not a small fixed preview -- Task 3.6's question
+        # rendering needs real overlap counts ("only 3 customers appear in
+        # both"), computed from these same samples, not just a display snippet
+        samples[label] = r.result_set.rows[:top_n] if r.ok and r.result_set else []
+        columns[label] = r.result_set.columns if r.ok and r.result_set else []
         if not r.ok and r.error:
             errors[label] = r.error
 
@@ -290,5 +296,6 @@ def compute_divergence_report(
         pairwise_matrix=matrix,
         result_kind_per_interpretation=kinds,
         sample_rows_per_interpretation=samples,
+        columns_per_interpretation=columns,
         errors=errors,
     )
