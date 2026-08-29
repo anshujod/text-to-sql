@@ -1,6 +1,14 @@
 from t2sql.clarify.detector import DetectedAmbiguity, detect_ambiguities
 from t2sql.clarify.divergence import DivergenceReport, ResultKind, classify_result, compute_divergence_report
 from t2sql.clarify.intent import Intent, Slot, parse_intent
+from t2sql.clarify.policy import (
+    ESCAPE_OPTION,
+    ClarificationAction,
+    ClarificationDecision,
+    PolicyConfig,
+    SessionState,
+    decide_clarification,
+)
 from t2sql.clarify.self_consistency import (
     DivergenceResult,
     QuerySignature,
@@ -32,4 +40,10 @@ __all__ = [
     "ResultKind",
     "classify_result",
     "compute_divergence_report",
+    "ESCAPE_OPTION",
+    "ClarificationAction",
+    "ClarificationDecision",
+    "PolicyConfig",
+    "SessionState",
+    "decide_clarification",
 ]
