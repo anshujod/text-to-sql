@@ -1,7 +1,3 @@
--- Verification queries for the Phase 0.3 seed data. Each block proves one
--- ambiguity trap actually fires on the generated data, per PLAN.md 0.3.
--- SEED_END_DATE below must match SEED_END_DATE in scripts/generate_seed.py.
--- Raises an exception (nonzero exit) if any check fails.
 
 DO $$
 DECLARE

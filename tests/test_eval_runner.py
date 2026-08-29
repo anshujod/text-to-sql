@@ -1,7 +1,10 @@
-"""Task 1.5 gate: the harness runs end to end on the 10-item placeholder
-dataset and reports an accuracy number. Uses a deterministic oracle
-pipeline here (no LLM call needed) to keep this fast and free -- the CLI's
-real `baseline` config is exercised separately in test_eval_cli.py.
+"""Task 1.5 gate: the harness runs end to end on a dataset and reports an
+accuracy number. Uses a deterministic oracle pipeline here (no LLM call
+needed) to keep this fast and free -- the CLI's real `baseline` config is
+exercised separately in test_eval_cli.py.
+
+Runs against data/dev.jsonl, the 120-item 60% split produced by Task 2.4's
+scripts/split_dataset.py (supersedes the original 10-item 1.5 placeholder).
 """
 
 import json
@@ -24,8 +27,8 @@ def test_perfect_pipeline_scores_full_accuracy(tmp_path: Path) -> None:
     summary = run_eval(DEV_DATASET_PATH, oracle, config="oracle", run_id="test-oracle", results_dir=tmp_path)
 
     assert isinstance(summary, RunSummary)
-    assert summary.n_items == 10
-    assert summary.n_correct == 10
+    assert summary.n_items == 120
+    assert summary.n_correct == 120
     assert summary.n_errors == 0
     assert summary.accuracy == 1.0
 
@@ -39,7 +42,7 @@ def test_wrong_pipeline_scores_zero_accuracy(tmp_path: Path) -> None:
         results_dir=tmp_path,
     )
 
-    assert summary.n_items == 10
+    assert summary.n_items == 120
     assert summary.n_correct == 0
     assert summary.accuracy == 0.0
 
@@ -50,8 +53,8 @@ def test_pipeline_exception_is_captured_as_an_error_not_raised(tmp_path: Path) -
 
     summary = run_eval(DEV_DATASET_PATH, broken, config="broken", run_id="test-broken", results_dir=tmp_path)
 
-    assert summary.n_items == 10
-    assert summary.n_errors == 10
+    assert summary.n_items == 120
+    assert summary.n_errors == 120
     assert summary.n_correct == 0
 
 
@@ -70,7 +73,7 @@ def test_results_and_summary_files_are_written(tmp_path: Path) -> None:
     assert summary_path.exists()
 
     lines = results_path.read_text().strip().splitlines()
-    assert len(lines) == 10
+    assert len(lines) == 120
     first = json.loads(lines[0])
     assert {"id", "question", "is_ambiguous", "pred_sql", "correct", "error", "latency_seconds"} <= first.keys()
 
