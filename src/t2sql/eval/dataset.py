@@ -1,24 +1,19 @@
 """Dataset schema for the eval harness -- the scaffolding Phase 2's
 ambiguous/unambiguous question set gets poured into.
 
-`ambiguity_types` uses the 7-way taxonomy from PLAN.md's Phase 2 table
-(METRIC/TEMPORAL/ENTITY/SCOPE/GRAIN/COMPARISON/RESULT_SHAPE) as a plain
-Literal here -- Task 2.1 owns the real `AmbiguityType` enum (with per-type
-policy and detection hints) in `t2sql.clarify.taxonomy`; this just needs the
-same fixed vocabulary for validation, not the machinery around it.
+`ambiguity_types` uses the real `AmbiguityType` enum from
+`t2sql.clarify.taxonomy` (Task 2.1), which carries the per-type default
+policy and detection hints alongside the fixed 7-way vocabulary.
 """
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
-AmbiguityType = Literal[
-    "METRIC", "TEMPORAL", "ENTITY", "SCOPE", "GRAIN", "COMPARISON", "RESULT_SHAPE"
-]
+from t2sql.clarify.taxonomy import AmbiguityType
 
 
 class GoldInterpretation(BaseModel):
