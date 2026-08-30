@@ -420,6 +420,16 @@ RESULTS_DIR = Path(__file__).resolve().parents[3] / "results"
 
 
 def write_ablation_report(run: AblationRun, path: Path = RESULTS_DIR / "ablation.md") -> Path:
+    """Writes both the human-readable table at `path` and a `.raw.json`
+    sibling with the full per-item, per-config detail (every question,
+    final SQL, and record) -- the aggregate table alone can't support
+    Task 4.5's per-ambiguity-type breakdown, bootstrap CIs, or qualitative
+    examples, all of which need to go back to individual items after the
+    fact. Each real LLM call is billed once; losing this would mean paying
+    for it again just to look at it a second way.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render_ablation_md(run))
+    raw_path = path.with_suffix(".raw.json")
+    raw_path.write_text(run.model_dump_json(indent=2))
     return path

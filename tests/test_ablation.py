@@ -16,7 +16,7 @@ import pytest
 import t2sql.eval.ablation as ab
 from t2sql.clarify.self_consistency import DivergenceResult
 from t2sql.db.connection import get_connection
-from t2sql.eval.ablation import CONFIGS, render_ablation_md, run_ablation, run_ablation_item
+from t2sql.eval.ablation import CONFIGS, render_ablation_md, run_ablation, run_ablation_item, write_ablation_report
 from t2sql.eval.budget import BudgetGuard
 from t2sql.eval.dataset import DatasetItem, GoldInterpretation, load_dataset
 from t2sql.generation.models import GeneratedSQL
@@ -252,3 +252,36 @@ def test_render_ablation_md_has_all_six_config_rows() -> None:
     md = render_ablation_md(run)
     for config in CONFIGS:
         assert f"| {config} |" in md
+
+
+def test_write_ablation_report_persists_full_per_item_detail_alongside_the_table(tmp_path) -> None:
+    """The aggregate table alone can't support 4.5's per-type breakdown,
+    CIs, or qualitative examples -- write_ablation_report must also
+    persist every item's raw outcomes, not just the summary numbers.
+    """
+    item = _AMBIGUOUS["amb-001"]
+    guard = BudgetGuard(ceiling_usd=1000.0)
+
+    with mock.patch.object(ab, "generate_sql", side_effect=_fake_generate_sql), mock.patch.object(
+        ab, "compute_divergence", side_effect=_fake_compute_divergence
+    ), mock.patch.object(ab, "_judge_is_ambiguous", side_effect=_fake_judge), get_connection(role="readonly") as conn:
+        run = ab.AblationRun(
+            dataset="test",
+            model="fake",
+            n_self_consistency=5,
+            ceiling_usd=1.0,
+            spent_usd=0.0,
+            n_items_attempted=1,
+            n_items_completed=1,
+            stopped_on_budget=False,
+            items=[run_ablation_item(item, guard, model="fake", layer=_LAYER, conn=conn)],
+        )
+
+    md_path = tmp_path / "ablation.md"
+    write_ablation_report(run, path=md_path)
+
+    raw_path = tmp_path / "ablation.raw.json"
+    assert raw_path.exists()
+    reloaded = ab.AblationRun.model_validate_json(raw_path.read_text())
+    assert reloaded.items[0].id == "amb-001"
+    assert set(reloaded.items[0].outcomes) == set(CONFIGS)

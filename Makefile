@@ -1,4 +1,4 @@
-.PHONY: up down seed reset test eval
+.PHONY: up down seed reset test eval ablation
 
 up:
 	docker compose up -d --wait
@@ -19,3 +19,10 @@ test:
 
 eval:
 	@echo "make eval: not implemented yet (Phase 1.5)"
+
+# Costs real money (real OpenRouter calls) -- reproduces the Task 4.3 dev-set
+# ablation at the same $1.20 hard ceiling the real run used. Does not touch
+# the held-out test set; that run is separate (scripts/run_ablation.py
+# --dataset data/test.jsonl), one-time, and already done -- see results/RESULTS.md.
+ablation:
+	uv run python scripts/run_ablation.py --dataset data/dev.jsonl --n-items 25 --ceiling 1.20 --out results/ablation.md

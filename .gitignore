@@ -10,5 +10,6 @@ data/embeddings.pkl
 data/traces/
 data/*.db
 
-results/
+results/*
+!results/RESULTS.md
 .DS_Store
