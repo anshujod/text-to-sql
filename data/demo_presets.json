@@ -1,0 +1,182 @@
+[
+  {
+    "id": "amb-042",
+    "question": "How much revenue have we made?",
+    "ambiguity_types": [
+      "SCOPE"
+    ],
+    "expected_divergence": "high",
+    "gold_sql": [
+      {
+        "sql": "SELECT COALESCE(SUM(amount),0) FROM payments WHERE status='succeeded' AND currency='USD'",
+        "interpretation": "revenue_gross",
+        "label": "revenue_gross",
+        "clarification_answer": "Gross succeeded USD payments, no refund deduction"
+      },
+      {
+        "sql": "SELECT COALESCE((SELECT SUM(amount) FROM payments WHERE status='succeeded' AND currency='USD'),0)\n                   - COALESCE((SELECT SUM(amount) FROM refunds WHERE currency='USD'),0)",
+        "interpretation": "revenue_net",
+        "label": "revenue_net",
+        "clarification_answer": "Net of refunds (house default)"
+      }
+    ],
+    "hidden_label": "revenue_net",
+    "source_config": "full",
+    "baseline_sql": "SELECT COALESCE(SUM(\"p\".\"amount\") FILTER(WHERE \"p\".\"status\" = 'succeeded'), 0) - COALESCE(SUM(\"r\".\"amount\"), 0) AS \"revenue_net\" FROM \"orders\" AS \"o\" LEFT JOIN \"payments\" AS \"p\" ON \"o\".\"id\" = \"p\".\"order_id\" AND \"p\".\"currency\" = 'USD' LEFT JOIN \"refunds\" AS \"r\" ON \"o\".\"id\" = \"r\".\"order_id\" AND \"r\".\"currency\" = 'USD' LEFT JOIN \"users\" AS \"u\" ON \"o\".\"user_id\" = \"u\".\"id\" WHERE \"o\".\"status\" <> 'cancelled' AND \"u\".\"is_internal\" = FALSE AND \"u\".\"deleted_at\" IS NULL LIMIT 1000",
+    "baseline_correct": false,
+    "resolved_sql": "SELECT COALESCE(SUM(\"p\".\"amount\") FILTER(WHERE \"p\".\"status\" = 'succeeded'), 0) - COALESCE(SUM(\"r\".\"amount\"), 0) AS \"revenue_net\" FROM \"orders\" AS \"o\" LEFT JOIN \"payments\" AS \"p\" ON \"o\".\"id\" = \"p\".\"order_id\" AND \"p\".\"currency\" = 'USD' LEFT JOIN \"refunds\" AS \"r\" ON \"o\".\"id\" = \"r\".\"order_id\" AND \"r\".\"currency\" = 'USD' LEFT JOIN \"users\" AS \"u\" ON \"o\".\"user_id\" = \"u\".\"id\" WHERE \"o\".\"status\" <> 'cancelled' AND \"u\".\"is_internal\" = FALSE AND \"u\".\"deleted_at\" IS NULL LIMIT 1000",
+    "resolved_correct": false,
+    "asked": true,
+    "disclosed": true
+  },
+  {
+    "id": "amb-083",
+    "question": "List our best-selling products.",
+    "ambiguity_types": [
+      "RESULT_SHAPE"
+    ],
+    "expected_divergence": "low",
+    "gold_sql": [
+      {
+        "sql": "SELECT products.id, products.name, SUM(order_items.unit_price*order_items.quantity) AS revenue\n            FROM order_items JOIN products ON order_items.product_id = products.id\n            GROUP BY products.id, products.name ORDER BY revenue DESC LIMIT 5",
+        "interpretation": "top_5",
+        "label": "top_5",
+        "clarification_answer": "Top 5 products by revenue"
+      },
+      {
+        "sql": "SELECT products.id, products.name, SUM(order_items.unit_price*order_items.quantity) AS revenue\n            FROM order_items JOIN products ON order_items.product_id = products.id\n            GROUP BY products.id, products.name ORDER BY revenue DESC LIMIT 10",
+        "interpretation": "top_10",
+        "label": "top_10",
+        "clarification_answer": "Top 10 products by revenue (house default)"
+      }
+    ],
+    "hidden_label": "top_10",
+    "source_config": "full",
+    "baseline_sql": "SELECT \"p\".\"id\" AS \"id\", \"p\".\"name\" AS \"name\", \"c\".\"name\" AS \"category\", SUM(\"oi\".\"quantity\") AS \"total_units_sold\" FROM \"products\" AS \"p\" JOIN \"categories\" AS \"c\" ON \"p\".\"category_id\" = \"c\".\"id\" JOIN \"order_items\" AS \"oi\" ON \"p\".\"id\" = \"oi\".\"product_id\" JOIN \"orders\" AS \"o\" ON \"oi\".\"order_id\" = \"o\".\"id\" WHERE \"p\".\"deleted_at\" IS NULL AND \"o\".\"status\" <> 'cancelled' GROUP BY \"p\".\"id\", \"p\".\"name\", \"c\".\"name\" ORDER BY \"total_units_sold\" DESC LIMIT 10",
+    "baseline_correct": false,
+    "resolved_sql": "SELECT \"p\".\"id\" AS \"id\", \"p\".\"name\" AS \"name\", \"c\".\"name\" AS \"category\", COALESCE(SUM(\"oi\".\"quantity\"), 0) AS \"units_sold\", COALESCE(SUM(\"oi\".\"quantity\" * \"oi\".\"unit_price\"), 0) - COALESCE((SELECT SUM(\"r\".\"amount\") AS \"_col_0\" FROM \"refunds\" AS \"r\" WHERE \"r\".\"order_id\" = \"o\".\"id\" AND \"r\".\"currency\" = 'USD'), 0) AS \"revenue_net\" FROM \"products\" AS \"p\" LEFT JOIN \"order_items\" AS \"oi\" ON \"p\".\"id\" = \"oi\".\"product_id\" LEFT JOIN \"orders\" AS \"o\" ON \"oi\".\"order_id\" = \"o\".\"id\" LEFT JOIN \"categories\" AS \"c\" ON \"p\".\"category_id\" = \"c\".\"id\" WHERE \"p\".\"deleted_at\" IS NULL AND \"o\".\"status\" <> 'cancelled' AND \"o\".\"status\" IS NOT NULL GROUP BY \"p\".\"id\", \"p\".\"name\", \"c\".\"name\" ORDER BY \"revenue_net\" DESC NULLS LAST LIMIT 10",
+    "resolved_correct": false,
+    "asked": true,
+    "disclosed": true
+  },
+  {
+    "id": "amb-030",
+    "question": "How many customers do we have?",
+    "ambiguity_types": [
+      "ENTITY"
+    ],
+    "expected_divergence": "high",
+    "gold_sql": [
+      {
+        "sql": "SELECT COUNT(*) FROM customers",
+        "interpretation": "customers_table",
+        "label": "customers_table",
+        "clarification_answer": "Customer entities (the customers table)"
+      },
+      {
+        "sql": "SELECT COUNT(*) FROM users WHERE deleted_at IS NULL AND is_internal = false",
+        "interpretation": "users_table",
+        "label": "users_table",
+        "clarification_answer": "Active, non-internal login accounts (the users table)"
+      }
+    ],
+    "hidden_label": "users_table",
+    "source_config": "rules_only",
+    "baseline_sql": "SELECT COUNT(DISTINCT \"customers\".\"id\") AS \"customer_count\" FROM \"customers\" AS \"customers\" LIMIT 1000",
+    "baseline_correct": false,
+    "resolved_sql": "SELECT COUNT(DISTINCT \"u\".\"customer_id\") AS \"customer_count\" FROM \"users\" AS \"u\" WHERE \"u\".\"is_internal\" = FALSE AND \"u\".\"deleted_at\" IS NULL LIMIT 1000",
+    "resolved_correct": false,
+    "asked": true,
+    "disclosed": false
+  },
+  {
+    "id": "amb-026",
+    "question": "How many orders came in this quarter?",
+    "ambiguity_types": [
+      "TEMPORAL"
+    ],
+    "expected_divergence": "low",
+    "gold_sql": [
+      {
+        "sql": "SELECT COUNT(*) FROM orders WHERE created_at >= '2025-10-01' AND created_at < '2026-01-01'",
+        "interpretation": "calendar_quarter",
+        "label": "calendar_quarter",
+        "clarification_answer": "Calendar Q4 2025 (Oct 1 - Dec 31)"
+      },
+      {
+        "sql": "SELECT COUNT(*) FROM orders WHERE created_at >= (SELECT MAX(created_at) FROM orders) - INTERVAL '90 days'",
+        "interpretation": "trailing_90_days",
+        "label": "trailing_90_days",
+        "clarification_answer": "Trailing 90 days from the most recent order"
+      }
+    ],
+    "hidden_label": "trailing_90_days",
+    "source_config": "full",
+    "baseline_sql": "SELECT COUNT(DISTINCT \"orders\".\"id\") AS \"order_count\" FROM \"orders\" AS \"orders\" WHERE \"orders\".\"status\" <> 'cancelled' AND DATE_TRUNC('QUARTER', \"orders\".\"created_at\") = DATE_TRUNC('QUARTER', (SELECT MAX(\"orders\".\"created_at\") AS \"_col_0\" FROM \"orders\" AS \"orders\")) LIMIT 1000",
+    "baseline_correct": false,
+    "resolved_sql": "SELECT COUNT(DISTINCT \"orders\".\"id\") AS \"order_count\" FROM \"orders\" AS \"orders\" WHERE \"orders\".\"status\" <> 'cancelled' AND DATE_TRUNC('QUARTER', \"orders\".\"created_at\") = DATE_TRUNC('QUARTER', (SELECT MAX(\"orders\".\"created_at\") AS \"_col_0\" FROM \"orders\" AS \"orders\")) LIMIT 1000",
+    "resolved_correct": false,
+    "asked": false,
+    "disclosed": true
+  },
+  {
+    "id": "amb-045",
+    "question": "How many orders did customer id 3000 place?",
+    "ambiguity_types": [
+      "SCOPE"
+    ],
+    "expected_divergence": "high",
+    "gold_sql": [
+      {
+        "sql": "SELECT COUNT(*) FROM orders WHERE customer_id = 3000",
+        "interpretation": "all_statuses",
+        "label": "all_statuses",
+        "clarification_answer": "All orders, any status"
+      },
+      {
+        "sql": "SELECT COUNT(*) FROM orders WHERE customer_id = 3000 AND status != 'cancelled'",
+        "interpretation": "exclude_cancelled",
+        "label": "exclude_cancelled",
+        "clarification_answer": "Excluding cancelled orders"
+      }
+    ],
+    "hidden_label": "exclude_cancelled",
+    "source_config": "full",
+    "baseline_sql": "SELECT COUNT(DISTINCT \"orders\".\"id\") AS \"order_count\" FROM \"orders\" AS \"orders\" WHERE \"orders\".\"customer_id\" = 3000 AND \"orders\".\"status\" <> 'cancelled' LIMIT 1000",
+    "baseline_correct": true,
+    "resolved_sql": "SELECT COUNT(DISTINCT \"orders\".\"id\") AS \"order_count\" FROM \"orders\" AS \"orders\" WHERE \"orders\".\"customer_id\" = 3000 AND \"orders\".\"status\" <> 'cancelled' LIMIT 1000",
+    "resolved_correct": true,
+    "asked": true,
+    "disclosed": false
+  },
+  {
+    "id": "amb-064",
+    "question": "What's the average number of failed payment attempts per order, among orders that ever had one?",
+    "ambiguity_types": [
+      "GRAIN"
+    ],
+    "expected_divergence": "low",
+    "gold_sql": [
+      {
+        "sql": "SELECT COUNT(*)::numeric / COUNT(DISTINCT order_id) FROM payments WHERE status = 'failed'",
+        "interpretation": "per_order",
+        "label": "per_order",
+        "clarification_answer": "Failed payment rows / distinct orders with >=1 failed payment"
+      },
+      {
+        "sql": "SELECT COUNT(*)::numeric / (SELECT COUNT(DISTINCT order_id) FROM payments WHERE status = 'failed') FROM payments WHERE status = 'failed'",
+        "interpretation": "per_failed_row",
+        "label": "per_failed_row",
+        "clarification_answer": "Same count expressed per failed-payment row (each row is one order)"
+      }
+    ],
+    "hidden_label": "per_failed_row",
+    "source_config": "full",
+    "baseline_sql": "SELECT AVG(\"orders_with_failures\".\"failed_count\") AS \"avg_failed_payments_per_order\" FROM (SELECT \"orders\".\"id\" AS \"id\", COUNT(*) FILTER(WHERE \"payments\".\"status\" = 'failed') AS \"failed_count\" FROM \"orders\" AS \"orders\" JOIN \"payments\" AS \"payments\" ON \"orders\".\"id\" = \"payments\".\"order_id\" WHERE \"orders\".\"status\" <> 'cancelled' GROUP BY \"orders\".\"id\" HAVING COUNT(*) FILTER(WHERE \"payments\".\"status\" = 'failed') > 0) AS \"orders_with_failures\" LIMIT 1000",
+    "baseline_correct": false,
+    "resolved_sql": "SELECT AVG(\"orders_with_failures\".\"failed_count\") AS \"avg_failed_payments_per_order\" FROM (SELECT \"orders\".\"id\" AS \"id\", COUNT(*) FILTER(WHERE \"payments\".\"status\" = 'failed') AS \"failed_count\" FROM \"orders\" AS \"orders\" JOIN \"payments\" AS \"payments\" ON \"orders\".\"id\" = \"payments\".\"order_id\" WHERE \"orders\".\"status\" <> 'cancelled' GROUP BY \"orders\".\"id\" HAVING COUNT(*) FILTER(WHERE \"payments\".\"status\" = 'failed') > 0) AS \"orders_with_failures\" LIMIT 1000",
+    "resolved_correct": false,
+    "asked": false,
+    "disclosed": false
+  }
+]

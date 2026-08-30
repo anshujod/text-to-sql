@@ -121,9 +121,10 @@ is already grounded in real per-call-type costs, not guessed rates.
 **1. A disclosure win, not a correctness win** (`amb-042`, *"How much revenue have we made?"*)
 — `baseline` and `full` produce **byte-identical SQL** (net revenue, excluding internal
 accounts and cancelled orders). The difference is entirely in what the user sees: `baseline`
-picked that definition silently; `full` detected the METRIC ambiguity, asked, got "net
-revenue" back from the (simulated) user, and disclosed the choice explicitly before
-answering. Same answer, but the user now knows what was assumed instead of finding out the
+picked that definition silently; `full` detected the SCOPE ambiguity (gross vs. net-of-
+refunds is this taxonomy's SCOPE axis, not METRIC — same label vocabulary, different
+question: which default filter applies, not which metric), asked, got "net revenue" back
+from the (simulated) user, and disclosed the choice explicitly before answering. Same answer, but the user now knows what was assumed instead of finding out the
 hard way later. This is the project's actual value proposition, and it shows up even when
 generation quality doesn't improve.
 

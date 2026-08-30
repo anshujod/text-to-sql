@@ -1,23 +1,17 @@
-"""Simulated user (Task 4.2).
+"""Simulated user.
 
-Automates the human side of the clarification loop so Task 4.3's ablation
+Automates the human side of the clarification loop so ablation
 runner can drive the whole dataset unattended: given a `DatasetItem`, pick
 one `GoldInterpretation` as that item's hidden true intent, then repeatedly
 call `process_turn` and answer every ASK decision from the hidden intent
 alone -- never from the question text, never from any other interpretation
 -- until the session PROCEEDs or `max_turns` is exhausted.
 
-No LLM, no DB: this only drives the $0 clarification loop built in 3.1-3.6.
-`process_turn` re-parses the *same* original question each turn; what
-changes turn to turn is the session's `resolved_slots`, so a slot answered
-on turn 1 is inherited (never re-asked) on turn 2, per 3.6's follow-up
-semantics.
 
 Matching a hidden `GoldInterpretation` to one of a decision's offered
 `options` (its own `label`, e.g. "revenue_net", vs. the taxonomy's
 candidate vocabulary) is not always a literal string match -- an item with
-several unstated axes (Task 2.3's "multi-label" items, e.g. "revenue_net_
-calendar_q4") has a compound label that only partly overlaps any one
+several unstated axes has a compound label that only partly overlaps any one
 slot's candidate strings. `_choose_option` tries three strategies in order
 of confidence, falling through only when the previous one can't decide:
 

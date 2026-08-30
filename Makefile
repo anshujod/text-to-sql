@@ -1,4 +1,4 @@
-.PHONY: up down seed reset test eval ablation
+.PHONY: up down seed reset test eval ablation demo
 
 up:
 	docker compose up -d --wait
@@ -26,3 +26,8 @@ eval:
 # --dataset data/test.jsonl), one-time, and already done -- see results/RESULTS.md.
 ablation:
 	uv run python scripts/run_ablation.py --dataset data/dev.jsonl --n-items 25 --ceiling 1.20 --out results/ablation.md
+
+# $0 -- replays 6 real, already-evaluated questions (data/demo_presets.json),
+# no LLM calls. Needs the DB running (`make up`).
+demo:
+	uv run python -m t2sql.demo
