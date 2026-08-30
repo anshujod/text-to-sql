@@ -15,11 +15,15 @@ Full numbers, per-ambiguity-type breakdown, confidence intervals, and worked exa
 
 ## Demo
 
-*90-second GIF pending — see [`results/RESULTS.md`](results/RESULTS.md#qualitative-examples)
-for the same beats in writing in the meantime. Run it yourself: `make up && make demo` — 6
-curated questions replay real, already-evaluated results for free (no API key needed), or
-type your own question for a live run against a real model (a couple of cheap-model calls,
-with a cost estimate and confirmation before anything is sent).*
+![Demo: baseline answers silently, the system detects an ENTITY ambiguity and asks, resolves to a visibly different number, then correctly declines to ask on a near-miss question](docs/demo.gif)
+
+Run it yourself: `make up && make demo` — 6 curated questions replay real, already-evaluated
+results for free (no API key needed), or type your own question for a live run against a
+real model (a couple of cheap-model calls, with a cost estimate and confirmation before
+anything is sent). Same beats as the GIF, in writing:
+[`results/RESULTS.md`](results/RESULTS.md#qualitative-examples). (GIF regenerated with
+`./scripts/record_demo_gif.sh`, which needs `asciinema` and `agg` on `PATH` — recording
+tools, not project dependencies.)
 
 ## Ablation (held-out test set, 80 items, run once)
 
