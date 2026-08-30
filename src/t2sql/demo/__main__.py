@@ -85,7 +85,7 @@ def _run_preset(preset: dict, layer, conn) -> None:
     intent = parse_intent(preset["question"], layer=layer)
     ambiguities = detect_ambiguities(intent, layer)
 
-    console.print("[bold]Live detection (rule-based, $0):[/bold]")
+    console.print("[bold]Live detection (rule-based):[/bold]")
     if ambiguities:
         for a in ambiguities:
             spec = get_spec(AmbiguityType(a.type))
@@ -109,7 +109,7 @@ def _run_preset(preset: dict, layer, conn) -> None:
     if len(preset["gold_sql"]) >= 2:
         interpretations = [(g["label"] or f"reading_{i}", g["sql"]) for i, g in enumerate(preset["gold_sql"])]
         info_report = compute_divergence_report(interpretations, conn=conn)
-        console.print(f"\n[bold]For context (live, $0 -- how much this question's known readings actually differ):[/bold]")
+        console.print("\n[bold]For context (how much this question's known readings actually differ):[/bold]")
         console.print(f"  divergence={info_report.score:.2f} across: {', '.join(info_report.labels)}")
 
     # Branch on the real evaluation's own outcome, not a fresh recomputation --
@@ -134,9 +134,8 @@ def _run_preset(preset: dict, layer, conn) -> None:
             question_text = f"Which {top.slot} did you mean?" if top else "Which reading did you mean?"
         console.print(Panel(question_text, title="[bold]Clarification question[/bold]", border_style="magenta"))
         console.print(
-            "[dim]This project's remaining budget is ~$0, so this demo shows the real, already-evaluated "
-            "resolution for this question rather than regenerating SQL live for whatever you type -- "
-            "type anything to continue.[/dim]"
+            "[dim]This demo shows the real, already-evaluated resolution for this question rather than "
+            "regenerating SQL live for whatever you type -- type anything to continue.[/dim]"
         )
         try:
             input("  > your answer: ")
@@ -152,7 +151,7 @@ def _run_preset(preset: dict, layer, conn) -> None:
                 "This question's real evaluation run did not ask here. The live rule-confidence "
                 "check above is shown for context; the actual gate that made this call combined "
                 "signals (self-consistency, the divergence gate) not all reproduced live in this "
-                "$0 demo -- see results/RESULTS.md for the full reasoning.",
+                "demo -- see results/RESULTS.md for the full reasoning.",
                 title="[bold]System declined to ask[/bold]",
                 border_style="green",
             )

@@ -15,15 +15,21 @@ Full numbers, per-ambiguity-type breakdown, confidence intervals, and worked exa
 
 ## Demo
 
-![Demo: baseline answers silently, the system detects an ENTITY ambiguity and asks, resolves to a visibly different number, then correctly declines to ask on a near-miss question](docs/demo.gif)
+![Demo: live run of "Who is our best customer?" — baseline silently ranks by revenue, the system detects the METRIC ambiguity and asks, and answering "number of orders" instead surfaces a completely different top-5 with zero overlap](docs/demo.gif)
+
+This is a live run, not a replay: "Who is our best customer?" against a real model.
+`baseline` silently ranks customers by revenue; asked which metric was meant and told
+"number of orders" instead, the resolved answer's top-5 shares **zero customers** with
+baseline's — same question, same data, a completely different answer depending on what
+"best" means.
 
 Run it yourself: `make up && make demo` — 6 curated questions replay real, already-evaluated
-results for free (no API key needed), or type your own question for a live run against a
-real model (a couple of cheap-model calls, with a cost estimate and confirmation before
-anything is sent). Same beats as the GIF, in writing:
+results for free (no API key needed), or type your own question (like above) for a live run
+against a real model (a couple of cheap-model calls, with a cost estimate and confirmation
+before anything is sent). More worked examples in writing:
 [`results/RESULTS.md`](results/RESULTS.md#qualitative-examples). (GIF regenerated with
 `./scripts/record_demo_gif.sh`, which needs `asciinema` and `agg` on `PATH` — recording
-tools, not project dependencies.)
+tools, not project dependencies — and a real `OPENROUTER_API_KEY`.)
 
 ## Ablation (held-out test set, 80 items, run once)
 
