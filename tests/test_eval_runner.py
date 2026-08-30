@@ -1,10 +1,10 @@
-"""Task 1.5 gate: the harness runs end to end on a dataset and reports an
-accuracy number. Uses a deterministic oracle pipeline here (no LLM call
-needed) to keep this fast and free -- the CLI's real `baseline` config is
-exercised separately in test_eval_cli.py.
+"""Gate: the harness runs end to end on a dataset and reports an accuracy
+number. Uses a deterministic oracle pipeline here (no LLM call needed) to
+keep this fast and free -- the CLI's real `baseline` config is exercised
+separately in test_eval_cli.py.
 
-Runs against data/dev.jsonl, the 120-item 60% split produced by Task 2.4's
-scripts/split_dataset.py (supersedes the original 10-item 1.5 placeholder).
+Runs against data/dev.jsonl, the 120-item 60% split produced by
+scripts/split_dataset.py.
 """
 
 import json

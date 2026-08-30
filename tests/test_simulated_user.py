@@ -1,4 +1,4 @@
-"""Task 4.2 (simulated user): $0, no LLM -- drives the real 3.1-3.6
+"""Simulated user: $0, no LLM -- drives the real
 clarification loop against real dataset items and the live DB-backed
 detector, answering only from a hidden GoldInterpretation.
 """
@@ -86,7 +86,7 @@ def test_unambiguous_item_completes_with_no_asks() -> None:
 def test_oracle_resolves_a_real_ambiguous_item_without_missing_the_metric_turn() -> None:
     """amb-001 ("Who is our best customer?") has 3 gold interpretations;
     whichever one seed=0 hides, the oracle must answer the metric turn
-    with that exact label -- this is the core Task 4.2 behavior, checked
+    with that exact label -- this is the core simulated-user behavior, checked
     against the live rule detector, not a hand-built decision.
     """
     result = simulate_item(AMBIGUOUS_ITEMS["amb-001"], seed=0)
@@ -139,7 +139,7 @@ def test_simulate_item_never_exceeds_max_turns_before_giving_up() -> None:
 
 
 # ---------------------------------------------------------------------------
-# The actual PLAN.md 4.2 gate
+# The actual gate
 # ---------------------------------------------------------------------------
 
 

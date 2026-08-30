@@ -1,13 +1,15 @@
-"""Session state and turn orchestration (Task 3.6, part 2).
+"""Session state and turn orchestration.
 
-`Session` is the stateful conversation memory Task 3.5's `decide_clarification`
+`Session` is the stateful conversation memory `decide_clarification`
 is deliberately pure with respect to -- resolved slots, how many
 clarifications have been asked, the question/answer history, and which
 defaults were silently-to-the-model-but-not-to-the-user applied. It wraps
-(not replaces) Task 3.5's `SessionState`: `to_policy_state()` is the bridge.
+(not replaces) the policy engine's `SessionState`: `to_policy_state()` is
+the bridge.
 
-`process_turn` ties Tasks 3.1-3.6 together for one turn of a conversation:
-parse the question, detect ambiguity, decide whether to ask, render the
+`process_turn` ties the whole clarification pipeline together for one turn
+of a conversation: parse the question, detect ambiguity, decide whether to
+ask, render the
 question if so, and record everything into the session. It does not call
 an LLM or touch the database -- SQL generation/regeneration for the
 resolved question is deliberately out of scope here (that's the real
@@ -84,7 +86,7 @@ _INTENT_SLOT_NAMES = ("metric", "entity", "dimensions", "filters", "time_range",
 def effective_slots(intent: Intent, session: Session) -> dict[str, str | None]:
     """Every named Intent slot, resolved via Session.effective_value --
     the follow-up-inherits-the-resolved-metric behavior, generalized to
-    every slot Task 3.1 parses, not just metric.
+    every slot intent parsing produces, not just metric.
     """
     return {name: session.effective_value(name, getattr(intent, name)) for name in _INTENT_SLOT_NAMES}
 

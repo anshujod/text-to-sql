@@ -1,6 +1,6 @@
-"""Task 3.1 gate: parse_intent resolves against the semantic layer, and on
+"""Gate: parse_intent resolves against the semantic layer, and on
 the dev ambiguous set it surfaces multiple candidates for >=80% of METRIC
-and >=80% of ENTITY items (PLAN.md 3.1's "Done when").
+and >=80% of ENTITY items.
 """
 
 from pathlib import Path
@@ -14,7 +14,7 @@ MULTI_CANDIDATE_THRESHOLD = 0.8
 
 
 def test_best_customer_surfaces_the_three_way_metric_ambiguity() -> None:
-    """PLAN.md 3.1's own example: 'best' -> [revenue_net, order_count, session_count]."""
+    """The canonical example: 'best' -> [revenue_net, order_count, session_count]."""
     intent = parse_intent("Who is our best customer?")
 
     assert isinstance(intent, Intent)
@@ -71,7 +71,7 @@ def test_ranked_request_without_a_count_stays_unresolved() -> None:
 
 
 def test_dev_ambiguous_set_metric_and_entity_recall() -> None:
-    """The actual PLAN.md 3.1 gate: on dev's ambiguous items, >=80% of
+    """The actual recall gate: on dev's ambiguous items, >=80% of
     METRIC items and >=80% of ENTITY items get >=2 metric/entity candidates.
     """
     layer = load_semantic_layer()

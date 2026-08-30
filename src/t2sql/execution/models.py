@@ -1,9 +1,9 @@
 """Execution result types.
 
 ResultSet is deliberately narrow (just columns + rows) and carries the
-stable fingerprint() used in Phase 3.4 to tell whether two candidate
-interpretations of a question actually produced different data, not just
-different-looking SQL. ExecutionResult is the fuller bookkeeping record:
+stable fingerprint() used by the divergence gate to tell whether two
+candidate interpretations of a question actually produced different data,
+not just different-looking SQL. ExecutionResult is the fuller bookkeeping record:
 types, timing, error, and how many repair attempts it took.
 """
 

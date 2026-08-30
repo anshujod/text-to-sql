@@ -1,4 +1,4 @@
-"""Task 4.1 -- the metrics module.
+"""The metrics module.
 
 `execution_accuracy` (below) runs predicted and gold SQL and compares
 result sets -- never SQL strings, since semantically identical queries can
@@ -8,11 +8,11 @@ correct if it matches *any* of a question's gold interpretations --
 gold_sql is a list because an ambiguous question can have several
 equally-valid readings.
 
-The rest of this module is the aggregate, per-run metrics PLAN.md 4.1
-calls for, all pure functions over a list of `EvalRecord` -- no DB, no
-LLM, $0. Each one is deliberately a plain function of a plain list so a
-unit test can hand-construct a handful of records with a known answer,
-per 4.1's Done-when.
+The rest of this module is the aggregate, per-run metrics this project's
+evaluation calls for, all pure functions over a list of `EvalRecord` -- no
+DB, no LLM, $0. Each one is deliberately a plain function of a plain list
+so a unit test can hand-construct a handful of records with a known
+answer.
 """
 
 from __future__ import annotations
@@ -92,15 +92,15 @@ def execution_accuracy(
 
 
 # ---------------------------------------------------------------------------
-# Run-level metrics (Task 4.1)
+# Run-level metrics
 # ---------------------------------------------------------------------------
 
 
 class EvalRecord(BaseModel):
     """One dataset item's outcome from a full (clarify-aware) eval run --
-    the unit these aggregate metrics are computed over. A future ablation
-    runner (Task 4.3) is the intended producer of a list of these; unit
-    tests below hand-construct lists directly, per 4.1's Done-when.
+    the unit these aggregate metrics are computed over. The ablation runner
+    is the intended producer of a list of these; unit tests below
+    hand-construct lists directly.
     """
 
     id: str
@@ -124,10 +124,9 @@ def detection_precision_recall_f1(records: Sequence[EvalRecord]) -> dict[str, fl
 
 
 def over_ask_rate(records: Sequence[EvalRecord]) -> float:
-    """Fraction of *all* queries -- ambiguous or not -- where the system asked.
-    PLAN.md calls this out to report prominently, since it's the metric most
-    systems hide (a system that always asks has perfect "precision" on
-    nothing).
+    """Fraction of *all* queries -- ambiguous or not -- where the system
+    asked. Worth reporting prominently, since it's the metric most systems
+    hide (a system that always asks has perfect "precision" on nothing).
     """
     if not records:
         return 0.0
@@ -136,8 +135,8 @@ def over_ask_rate(records: Sequence[EvalRecord]) -> float:
 
 def unnecessary_ask_rate(records: Sequence[EvalRecord]) -> float:
     """Of the items whose interpretations actually converge despite looking
-    ambiguous (`expected_divergence == "low"`, Task 2.4's near-miss items),
-    what fraction did the system ask about anyway. Denominator is fixed to
+    ambiguous (`expected_divergence == "low"`, the dataset's near-miss
+    items), what fraction did the system ask about anyway. Denominator is fixed to
     that known near-miss subset rather than "all asks" so the rate stays
     well-defined even when the system never asks, and measures exactly the
     failure mode the near-miss items were built to catch: triggering on
@@ -176,8 +175,8 @@ def bootstrap_ci(
     """Percentile bootstrap: resample `items` with replacement `n_bootstrap`
     times, recompute `metric_fn` on each resample, and return
     (point_estimate, ci_low, ci_high) at confidence `1 - alpha`. Generic
-    over any of the rate functions above -- with n=100 dev items PLAN.md
-    calls out that the error bars matter.
+    over any of the rate functions above -- with n=100 dev items the
+    error bars matter.
     """
     point = metric_fn(items)
     n = len(items)

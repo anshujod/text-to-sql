@@ -1,4 +1,4 @@
-"""Task 4.3 (ablation runner): $0 -- every LLM-calling function is
+"""Ablation runner: $0 -- every LLM-calling function is
 monkeypatched, so these tests verify the *control flow* (call-sharing
 across configs, budget enforcement, report rendering), not real model
 output. The real, budgeted run against OpenRouter is done separately, once
@@ -117,7 +117,7 @@ def test_llm_judge_detection_signal_is_independent_of_rule_candidates() -> None:
     nothing to ask about -- llm_judge must still report its own raw
     detected_ambiguous=True (the judge said yes), even though there's
     nothing to actually ask (asked=False), since these measure different
-    things (Task 4.1's precision/recall vs. over-ask rate).
+    things (detection precision/recall vs. over-ask rate).
     """
     item = _UNAMBIGUOUS[0]
     guard = BudgetGuard(ceiling_usd=1000.0)

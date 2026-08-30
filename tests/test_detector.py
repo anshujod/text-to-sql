@@ -1,6 +1,6 @@
-"""Task 3.2 gate: the rule-based detector hits >=0.9 precision on dev for
-METRIC, ENTITY, and GRAIN. Recall is explicitly not the target (PLAN.md
-3.2: "recall will be mediocre -- that is what 3.3 is for").
+"""Gate: the rule-based detector hits >=0.9 precision on dev for
+METRIC, ENTITY, and GRAIN. Recall is explicitly not the target (self-
+consistency detection is what's supposed to pick up the rest).
 
 Precision here means: of the dev items where the detector fires a given
 type, what fraction are actually labeled with that type in
@@ -58,7 +58,7 @@ def test_entity_does_not_fire_when_context_already_pins_the_table() -> None:
 
 
 def test_entity_does_not_fire_on_orders_vs_order_alias() -> None:
-    """PLAN.md 3.2's own counter-example: matching the same table via two
+    """A deliberate counter-example: matching the same table via two
     synonyms isn't ENTITY ambiguity."""
     intent = parse_intent("How many orders have we had?")
     detections = detect_ambiguities(intent, load_semantic_layer())
@@ -98,7 +98,7 @@ def test_top_without_a_count_fires_result_shape() -> None:
 
 
 def test_dev_precision_gate_for_metric_entity_grain() -> None:
-    """The actual PLAN.md 3.2 gate."""
+    """The actual precision gate for the rule-based detector."""
     layer = load_semantic_layer()
     items = load_dataset(DEV_DATASET_PATH)
 

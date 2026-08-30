@@ -1,5 +1,5 @@
-"""Task 3.5 gate: decide_clarification is a pure function (no LLM, no DB)
-covering every PLAN.md 3.5 rule with a dedicated test.
+"""Gate: decide_clarification is a pure function (no LLM, no DB)
+covering every policy rule with a dedicated test.
 """
 
 from t2sql.clarify.detector import DetectedAmbiguity

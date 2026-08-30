@@ -1,4 +1,4 @@
-"""Result divergence test (Task 3.4) [GATE].
+"""Result divergence test.
 
 The core idea the whole project rests on: do not ask unless the answer
 would actually change. Given K candidate interpretations of a question
@@ -30,11 +30,11 @@ way, so hashing the SQL is a strict refinement of "cache by
 (question_hash, interpretation)": more cache hits, same correctness, since
 the SQL text alone fully determines the result on a static database).
 
-Cost guard: `max_k` truncates to PLAN.md's K=4 cap. Real (non-gold) callers
+Cost guard: `max_k` truncates to a K=4 cap. Real (non-gold) callers
 generating candidate SQL via an LLM are expected to check their own budget
-*before* calling this -- see Task 3.5's policy engine -- so this module
-stays a pure "given K queries, how much do they disagree" function with no
-LLM dependency of its own.
+*before* calling this -- see the policy engine -- so this module stays a
+pure "given K queries, how much do they disagree" function with no LLM
+dependency of its own.
 """
 
 from __future__ import annotations
@@ -149,7 +149,7 @@ def _multi_value_divergence(a: ResultSet, b: ResultSet) -> float:
 def _rank_overlap(a: list, b: list) -> float:
     """Overlap coefficient (Szymkiewicz-Simpson): |A n B| / min(|A|, |B|).
 
-    PLAN.md 3.4 names rank-biased overlap as the preferred measure for
+    Rank-biased overlap is the preferred measure for
     ranked lists specifically because plain Jaccard mishandles a
     different-length pair that's otherwise a prefix match: top-5 vs.
     top-10 of the identical ranking gives Jaccard = 5/10 = 0.5 ("50%
@@ -273,8 +273,8 @@ def compute_divergence_report(
     for label in labels:
         r = results[label]
         kinds[label] = classify_result(r.result_set, r.column_types) if r.ok else ResultKind.ERROR
-        # capped at top_n, not a small fixed preview -- Task 3.6's question
-        # rendering needs real overlap counts ("only 3 customers appear in
+        # capped at top_n, not a small fixed preview -- question rendering
+        # needs real overlap counts ("only 3 customers appear in
         # both"), computed from these same samples, not just a display snippet
         samples[label] = r.result_set.rows[:top_n] if r.ok and r.result_set else []
         columns[label] = r.result_set.columns if r.ok and r.result_set else []

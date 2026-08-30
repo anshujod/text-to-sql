@@ -1,11 +1,11 @@
 """Deterministic slot detector
 
-Rule-based ambiguity detection over a parsed `Intent` (Task 3.1). Cheap,
-fast, testable, and runs before Task 3.3's LLM-based self-consistency
-detector. PLAN.md 3.2's bar is **precision** on dev for METRIC, ENTITY,
-GRAIN (>=0.9) -- recall is explicitly not the target here ("recall will be
-mediocre -- that is what 3.3 is for"), so every rule below is written to
-fire only when it's confident, not to catch everything.
+Rule-based ambiguity detection over a parsed `Intent`. Cheap, fast,
+testable, and runs before the LLM-based self-consistency detector. The
+target here is **precision** on dev for METRIC, ENTITY, GRAIN (>=0.9) --
+recall is explicitly not the goal (that's what self-consistency detection
+is for), so every rule below is written to fire only when it's confident,
+not to catch everything.
 
 Seven rules, one per `AmbiguityType`:
 
@@ -44,7 +44,7 @@ DIFFERENT_GRAIN_ENTITY_PAIRS: frozenset[frozenset[str]] = frozenset({frozenset({
 # Fixed candidate readings for slots without a semantic-layer-backed
 # candidate list (dimensions/comparison baselines aren't modeled as
 # resolvable entities the way metrics/tables are) -- mirrors the fixed
-# reading lists Task 3.1 already uses for time_range.
+# reading lists intent parsing already uses for time_range.
 GRAIN_DEFAULT_READINGS = ["per_order", "per_customer", "per_month"]
 COMPARISON_DEFAULT_READINGS = ["month_over_month", "trailing_period_average"]
 
@@ -53,7 +53,7 @@ COMPARISON_BASELINE_TERMS = ["compared to", "vs.", "vs ", "versus", "relative to
 
 # Deterministic-rule confidences. Not empirically calibrated to a
 # probability scale -- just a fixed per-rule strength ranking so a
-# downstream consumer (Task 3.5's policy engine) can prefer a stronger
+# downstream consumer (the policy engine) can prefer a stronger
 # signal over a weaker one when several rules fire on the same question.
 CONFIDENCE_ENTITY = 0.9
 CONFIDENCE_METRIC = 0.85
@@ -121,7 +121,7 @@ def _detect_entity(intent: Intent) -> DetectedAmbiguity | None:
     if any(t in question_lower for t in ENTITY_DISAMBIGUATING_TERMS):
         return None  # "customer"/"user" co-occurs, but something else already pins the table
     if intent.dimensions.candidates or any(t in question_lower for t in EXPLICIT_METRIC_DEFINITION_TERMS):
-        return None  # ranking basis/formula already spelled out -- same signal Task 3.2's METRIC rule uses
+        return None  # ranking basis/formula already spelled out -- same signal the METRIC rule uses
     if intent.limit.resolved is None and intent.limit.reason == "ranked request with no explicit row count":
         return None  # vague "top"/"best" language with no count is RESULT_SHAPE's territory, not ENTITY's
     for pair in DIFFERENT_GRAIN_ENTITY_PAIRS:

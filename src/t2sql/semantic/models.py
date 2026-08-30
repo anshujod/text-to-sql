@@ -33,7 +33,7 @@ class Entity(BaseModel):
     # Natural-language terms a question might use to refer to this table.
     # Deliberately overlapping between customers/users (both list "customer"/
     # "customers") the same way metrics.yaml overlaps "best" across metrics --
-    # Task 3.1's parse_intent resolves a term into every entity whose synonym
+    # parse_intent resolves a term into every entity whose synonym
     # list contains it, which is exactly how ENTITY ambiguity gets surfaced.
     synonyms: list[str] = Field(default_factory=list)
 

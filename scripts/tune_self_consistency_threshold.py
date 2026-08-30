@@ -10,13 +10,13 @@ Two phases, split so a crash or interruption during generation doesn't
 lose completed work and doesn't cost anything to re-analyze:
 
   --generate   run compute_divergence (5 LLM calls each) over every dev
-               ambiguous item Task 3.2's rule detector missed, plus every
+               ambiguous item the rule detector missed, plus every
                dev unambiguous item. Appends one JSON line per item to the
                cache file; already-cached ids are skipped on a re-run.
   --report     (default) read the cache and sweep threshold candidates,
                reporting for each: how many rule-missed ambiguous items it
                newly catches, and what fraction of the unambiguous set it
-               false-fires on -- PLAN.md 3.3's Done when is >=5 caught and
+               false-fires on -- the target is >=5 caught and
                <=15% false-fire rate.
 
 Usage:

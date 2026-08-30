@@ -5,7 +5,7 @@ OpenRouter calls. Run explicitly with:
     RUN_LLM_TESTS=1 uv run pytest tests/test_eval_cli.py -q
 
 Deliberately runs against a small fixture (3 items), not the full
-data/dev.jsonl (120 items as of Task 2.4) -- this is a CLI smoke test, not
+data/dev.jsonl (120 items) -- this is a CLI smoke test, not
 a real eval run, and shouldn't scale its bill with the dataset size.
 
 Writes into the real (gitignored) results/ dir, same as a normal run.

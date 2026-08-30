@@ -2,7 +2,7 @@
 
 Deliberately makes silent choices on any ambiguity (which metric, which
 entity, what time range, in/out-of-scope rows) and records each one in
-`GeneratedSQL.assumptions` -- this is what Phase 3's clarification engine is
+`GeneratedSQL.assumptions` -- this is what the clarification engine is
 measured against, and what the demo uses to show the baseline's blind spots.
 """
 
@@ -136,7 +136,7 @@ def generate_sql(
 ) -> GeneratedSQL | list[GeneratedSQL]:
     """Generate SQL for `question` given prebuilt schema `context`.
 
-    `n` > 1 is for Phase 3.3's self-consistency check: most OpenRouter-backed
+    `n` > 1 is for the self-consistency check: most OpenRouter-backed
     models (Claude included) silently ignore the OpenAI `n` parameter and
     return a single choice, so this issues `n` independent calls instead.
     Returns a single GeneratedSQL when n == 1, else a list of length n.

@@ -100,7 +100,7 @@ def _run_preset(preset: dict, layer, conn) -> None:
     console.print(_results_table("baseline result", baseline_result))
 
     # Shown for context only -- NOT fed into the ask/no-ask decision below.
-    # The real evaluation's divergence gate (Task 3.4) scored self-consistency
+    # The real evaluation's divergence gate scored self-consistency
     # samples, which weren't cached; scoring this question's own labeled gold
     # readings instead is a different (if related) measurement and can
     # legitimately disagree with what the real run's gate decided. Branching

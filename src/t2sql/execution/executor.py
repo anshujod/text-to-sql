@@ -33,11 +33,11 @@ def execute(
     `timeout` is enforced server-side via `statement_timeout` on this call's
     connection, so a hanging query (e.g. pg_sleep) is cancelled rather than
     left to hang -- this is on top of, not instead of, the app_readonly
-    role's own default statement_timeout from Task 0.1.
+    role's own default statement_timeout.
 
     `row_cap` bounds how many rows are pulled into the result payload. It
     does not itself limit server-side execution -- pair this with the AST
-    validator (1.3), which injects `LIMIT` into the SQL before it gets here.
+    validator, which injects `LIMIT` into the SQL before it gets here.
     """
     if conn is None:
         with get_connection(role="readonly") as owned_conn:

@@ -1,4 +1,4 @@
-"""Task 2.1 gate: all 7 ambiguity types are encoded with a policy, an
+"""Gate: all 7 ambiguity types are encoded with a policy, an
 example question, and detection hints.
 """
 

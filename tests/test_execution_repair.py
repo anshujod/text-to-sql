@@ -1,4 +1,4 @@
-"""Task 1.4 gate: a query with a deliberately hallucinated column recovers
+"""Gate: a query with a deliberately hallucinated column recovers
 within 2 repairs, and a query with pg_sleep(10) times out cleanly rather
 than hanging.
 

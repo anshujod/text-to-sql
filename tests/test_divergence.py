@@ -1,9 +1,9 @@
-"""Task 3.4 [GATE]: result divergence test.
+"""Result divergence test.
 
 No LLM calls anywhere in this file -- `compute_divergence_report` takes SQL
-directly, and the dev-set validation below reuses Task 2.3's hand-verified
-gold_sql as the "K candidate interpretations," executed against the local
-Postgres. Runs on every `make test`.
+directly, and the dev-set validation below reuses the dataset's
+hand-verified gold_sql as the "K candidate interpretations," executed
+against the local Postgres. Runs on every `make test`.
 """
 
 from pathlib import Path
@@ -156,13 +156,14 @@ def test_failed_query_scores_maximal_divergence() -> None:
 
 
 # ---------------------------------------------------------------------------
-# The actual PLAN.md 3.4 gate: score correlates with expected_divergence
+# The actual gate: score correlates with expected_divergence
 # ---------------------------------------------------------------------------
 
 
 def test_dev_divergence_score_separates_near_miss_from_high() -> None:
-    """Reuses Task 2.3's hand-verified gold_sql per item as the K candidate
-    interpretations -- no LLM needed, the interpretations already exist.
+    """Reuses the dataset's hand-verified gold_sql per item as the K
+    candidate interpretations -- no LLM needed, the interpretations already
+    exist.
     """
     items = [item for item in load_dataset(DEV_DATASET_PATH) if item.is_ambiguous]
     assert items, "no dev ambiguous items found"
@@ -183,8 +184,8 @@ def test_dev_divergence_score_separates_near_miss_from_high() -> None:
     low_rate = low_correct / len(low_scores)
     high_rate = high_correct / len(high_scores)
 
-    # PLAN.md 3.4: "the ~15 near-miss items score low and the high-divergence
-    # items score high" -- not 100% (some items are borderline by design,
+    # The target: the ~15 near-miss items score low and the high-divergence
+    # items score high -- not 100% (some items are borderline by design,
     # e.g. COMPARISON near-misses that agree in sign but differ in
     # magnitude), but the large majority must separate cleanly.
     assert low_rate >= 0.8, f"only {low_correct}/{len(low_scores)} near-miss items scored <= {threshold}"

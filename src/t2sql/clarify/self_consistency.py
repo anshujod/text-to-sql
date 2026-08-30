@@ -1,8 +1,9 @@
 """Self-consistency detector.
 
-
-Candidates are compared **semantically, not textually**: each is parsed
-with sqlglot into a `QuerySignature` (tables referenced, SELECT projection
+Generates N candidate SQL queries at temperature 0.8 and checks whether
+the model agrees with itself; disagreement is the ambiguity signal, no
+hand-written rule required. Candidates are compared **semantically, not
+textually**: each is parsed with sqlglot into a `QuerySignature` (tables referenced, SELECT projection
 expressions, GROUP BY keys, WHERE predicates, ORDER BY, LIMIT), so two
 queries that are token-for-token different but compute the same thing
 cluster together, and two queries that read alike but pick a different
@@ -11,10 +12,10 @@ metric/scope/grain don't.
 Divergence score = 1 - (largest cluster size / N).
 
 Dev calibration (scripts/tune_self_consistency_threshold.py, full 74-item
-run: all 13 dev ambiguous items Task 3.2's rules missed, plus all 61 dev
+run: all 13 dev ambiguous items the rule detector missed, plus all 61 dev
 unambiguous items, N=5, temperature=0.8, OPENROUTER_DETECTION_MODEL =
-claude-haiku-4.5): **PLAN.md 3.3's Done-when (>=5 caught, <=15% false-fire)
-is not cleanly met by any single threshold** on this run --
+claude-haiku-4.5): **the target (>=5 caught, <=15% false-fire) is not
+cleanly met by any single threshold** on this run --
 
     threshold | caught (of 13) | false-fire (of 61)
     0.4 / 0.5 |       4        |   13 (21.3%)
@@ -23,8 +24,8 @@ is not cleanly met by any single threshold** on this run --
 DEFAULT_THRESHOLD=0.6 below is the practical choice: it keeps false-fire
 comfortably under the 15% ceiling (over-asking is the failure mode this
 whole project is built to avoid) at the cost of recall staying below the
-literal >=5 bar -- an explicitly sanctioned tradeoff ("recall will be
-mediocre -- that is what 3.3 is for"). Two fixes to `extract_signature`
+literal >=5 bar -- an explicitly sanctioned tradeoff (recall was expected
+to be mediocre here by design). Two fixes to `extract_signature`
 already found and applied during this calibration (table-alias
 canonicalization, excluding CTE names from the `tables` set) removed a
 lot of pure naming noise; most of what's left is the cheap detection
@@ -54,12 +55,12 @@ from t2sql.retrieval import build_schema_context
 DEFAULT_N = 5
 DEFAULT_TEMPERATURE = 0.8
 # See the module docstring's "Dev calibration" section for how this was
-# picked and its known gap against PLAN.md 3.3's literal Done-when bar.
+# picked and its known gap against the literal target.
 DEFAULT_THRESHOLD = 0.6
 
 # Which Intent-ish slot label to report for each inferred type -- mirrors
-# Task 3.2's detector.py slot naming so downstream consumers (3.5's policy
-# engine) don't need to special-case the detection source.
+# detector.py's slot naming so downstream consumers (the policy engine)
+# don't need to special-case the detection source.
 _TYPE_TO_SLOT: dict[AmbiguityType, str] = {
     AmbiguityType.ENTITY: "entity",
     AmbiguityType.METRIC: "metric",
@@ -75,8 +76,8 @@ _DATE_LITERAL_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 @dataclass(frozen=True)
 class QuerySignature:
-    """The semantic shape of a query -- what Task 3.4's divergence test
-    also cares about, but computed from SQL structure instead of results.
+    """The semantic shape of a query -- what the divergence gate also cares
+    about, but computed from SQL structure instead of results.
     """
 
     tables: frozenset[str]
@@ -213,8 +214,9 @@ def compute_divergence(
     dialect: str = "postgres",
 ) -> DivergenceResult:
     """Generate `n` candidates and score how much they disagree. Makes `n`
-    real LLM calls -- this is the expensive part of Task 3.3, callers doing
-    batch evaluation should cache this result, not just the final decision.
+    real LLM calls -- this is the expensive part of self-consistency
+    detection, callers doing batch evaluation should cache this result,
+    not just the final decision.
 
     Defaults to `OPENROUTER_DETECTION_MODEL` (a cheaper model than the
     baseline generator's `OPENROUTER_GENERATION_MODEL`) when `model` isn't
@@ -245,9 +247,9 @@ def compute_divergence(
 
 def _infer_type(signatures: list[QuerySignature]) -> AmbiguityType:
     """Best-guess which taxonomy axis the disagreement is along, from which
-    signature component actually varies. Not gated by Task 3.3's Done-when
-    (which only cares that ambiguity gets flagged at all), but useful for
-    Task 3.5's policy engine to have *something* better than "unknown".
+    signature component actually varies. Not gated by this detector's own
+    target (which only cares that ambiguity gets flagged at all), but
+    useful for the policy engine to have *something* better than "unknown".
     """
     if len({s.tables for s in signatures}) > 1:
         return AmbiguityType.ENTITY

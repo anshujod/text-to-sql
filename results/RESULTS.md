@@ -1,4 +1,4 @@
-# Results (Task 4.5 — held-out test set, run once)
+# Results (held-out test set, run once)
 
 Test split: `data/test.jsonl`, 80 items (41 ambiguous, 39 unambiguous), run exactly once,
 per this project's own discipline (`DATASET.md`) that the test set is never touched before
@@ -40,7 +40,7 @@ run's real $2.1498 total, which benefits from sharing calls across all six confi
 over-asking from 50.0% to 30.0% with *no* silent-error cost (30.0% either way). That's the
 gate doing exactly its job — the same detections, fewer unnecessary interruptions.
 
-**`self_consistency_only`** reproduces Task 3.3's own dev-set finding: high precision (0.73)
+**`self_consistency_only`** reproduces self-consistency detection's own dev-set finding: high precision (0.73)
 but weak recall (0.27) at the calibrated threshold — conservative by design, so more silent
 wrongness slips through (57.5%) than the rule-based mechanisms catch.
 
@@ -58,7 +58,7 @@ wrongness slips through (57.5%) than the rule-based mechanisms catch.
 
 **GRAIN is the weak spot**: 0% over-ask rate means the detector essentially never flags it,
 so its silent-error rate (71.4%) barely improves over baseline. See the GRAIN example below
-and `docs/FAILURE_ANALYSIS.md` (Task 5.4) for why. COMPARISON and RESULT_SHAPE sit at the
+and `docs/FAILURE_ANALYSIS.md` for why. COMPARISON and RESULT_SHAPE sit at the
 other extreme — asked on almost every item of that type, which is *why* their silent-error
 rate hits zero, but also why they dominate the over-ask rate.
 
@@ -79,14 +79,14 @@ effect is well outside noise. The correctness intervals are wide and identical f
 configs, consistent with correctness being dominated by the shared generator, not by which
 config is asking.
 
-## Cost and latency (Task 4.4)
+## Cost and latency
 
 Real, measured totals for this run: **$2.1498** for all 80 items × 6 configs, 587 real LLM
 calls (507 generation calls + 80 tiny judge calls), over ~46 minutes wall-clock. Real
 per-call averages: generation call = $0.00424 / 3.77s; judge call = $0.00011 / 0.97s.
 
-Because most calls are shared across configs (Task 4.3's docstring explains the sharing
-design), that $2.15 is the cost of running *all six configs together*, not any one config
+Because most calls are shared across configs (the ablation runner's own docstring explains
+the sharing design), that $2.15 is the cost of running *all six configs together*, not any one config
 alone. The **est. cost/query** and **est. latency/query** columns in the ablation table
 above answer the question that actually matters for a deployment decision — "what would
 running just this one config, in isolation, cost per query" — by applying the same real
@@ -106,8 +106,8 @@ resolved answer with it — a naive per-config accounting (which config's final 
 from baseline's) would suggest up to 75 such calls were "needed"; the real number, thanks to
 caching identical resolutions across configs, was a third of that.
 
-**What this is not**: PLAN.md 4.4 also asks for per-query tokens in/out, DB-query counts, and
-p50/p95 latency. None of that was instrumented at the per-item level in this run — only
+**What this is not**: a fuller cost breakdown would also want per-query tokens in/out,
+DB-query counts, and p50/p95 latency. None of that was instrumented at the per-item level in this run — only
 run-level totals and per-call-type averages were captured, so the table's cost/latency
 columns are a **structural estimate from known call-count architecture**, not measured
 per-query data, and there's no percentile to report (only one number per config: the
@@ -163,7 +163,7 @@ even with the full system engaged.
   weakest detection category across all three mechanisms — see the breakdown table and
   example 3.
 - **Self-consistency's recall stays low** (0.24–0.27 across configs that use it) at the
-  threshold calibrated in Task 3.3 — a known, documented tradeoff (favoring low false-fire
+  threshold calibrated during development — a known, documented tradeoff (favoring low false-fire
   over high catch rate), reconfirmed here on a held-out set rather than just the dev set it
   was tuned on.
 - **Regeneration is not fully isolated from the original ambiguity** (example 2) — resolving

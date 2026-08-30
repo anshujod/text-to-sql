@@ -6,8 +6,8 @@ defensible reading of a question. Every type below has a worked example with
 2+ SQL variants that return visibly different results on the seed data --
 see docs/taxonomy.md for the verified numbers.
 
-Detection hints are lightweight lexical/structural cues for Task 3.2's
-rule-based detector -- they are a starting point, not a claim of completeness.
+Detection hints are lightweight lexical/structural cues for the rule-based
+detector -- they are a starting point, not a claim of completeness.
 Recall is expected to be mediocre.
 """
 

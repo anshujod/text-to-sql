@@ -1,20 +1,20 @@
-"""Clarification policy engine (Task 3.5).
+"""Clarification policy engine.
 
 Decide: ask, or default and disclose? A pure function over its inputs --
 no LLM call, no DB query, no mutation of anything passed in. The caller
-(Task 3.6's Session wrapper) is responsible for acting on the decision:
+(the Session wrapper) is responsible for acting on the decision:
 incrementing `clarification_count`, recording `resolved_slots` once the
 user answers, etc. This module only decides, it never remembers.
 
-Inputs, per PLAN.md 3.5:
-  - `detected_ambiguities`: the slots Task 3.2's rules and/or Task 3.3's
+Inputs:
+  - `detected_ambiguities`: the slots the rule detector and/or the
     self-consistency check flagged, each carrying its own `candidates` and
     `confidence`
-  - `divergence_report`: Task 3.4's measured result-divergence for the
+  - `divergence_report`: the measured result-divergence for the
     highest-priority ambiguity's candidate interpretations, if it was
-    computed. Optional -- Task 3.4 itself is allowed to skip execution
-    when it's over cost budget, "and fall back to the 3.2/3.3 signal
-    alone." When absent, the top ambiguity's own `confidence` stands in
+    computed. Optional -- computing it is allowed to be skipped when it's
+    over cost budget, falling back to the rule/self-consistency signal
+    alone. When absent, the top ambiguity's own `confidence` stands in
     for the divergence score.
   - `session`: resolved slots from earlier in the conversation, and how
     many clarifications have already been asked
@@ -55,8 +55,8 @@ def _first_candidate_resolver(ambiguity: DetectedAmbiguity) -> str:
 
 
 class SessionState(BaseModel):
-    """The slice of conversation state Task 3.5's rules need. Task 3.6
-    owns the full Session object (question history, etc.) and is expected
+    """The slice of conversation state the policy rules need. The Session
+    class owns the full object (question history, etc.) and is expected
     to carry one of these alongside it, updating it after each decision.
     """
 

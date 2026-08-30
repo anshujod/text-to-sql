@@ -1,7 +1,7 @@
-"""Task 3.6 gate: a scripted 3-turn conversation resolves a metric on turn
+"""Gate: a scripted 3-turn conversation resolves a metric on turn
 1 and does not re-ask it on turns 2 and 3. Uses real parse_intent/
 detect_ambiguities against the live DB (no LLM) -- same $0 pattern as
-Tasks 3.1-3.5's dev-set gates.
+the other dev-set gates.
 """
 
 from t2sql.clarify.intent import Slot
@@ -135,7 +135,7 @@ def test_process_turn_proceed_does_not_produce_question_text() -> None:
 
 
 # ---------------------------------------------------------------------------
-# The actual PLAN.md 3.6 gate
+# The actual gate
 # ---------------------------------------------------------------------------
 
 

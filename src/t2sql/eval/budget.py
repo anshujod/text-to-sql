@@ -1,4 +1,4 @@
-"""Task 4.3's hard spend cap.
+"""The ablation runner's hard spend cap.
 
 Every LLM call already goes through `t2sql.generation.generate._call_once`,
 which logs one JSONL record per call to `data/traces/generation.jsonl`

@@ -1,27 +1,27 @@
-"""Task 4.3 -- the ablation runner.
+"""The ablation runner.
 
-Six configs (PLAN.md's table), one pipeline, sharing every LLM call that's
-genuinely identical across configs so the real dollar cost stays close to
-"one item's worth of work," not "six times one item's worth of work":
+Six configs, one pipeline, sharing every LLM call that's genuinely
+identical across configs so the real dollar cost stays close to "one
+item's worth of work," not "six times one item's worth of work":
 
   baseline               no detection at all
   llm_judge              one "is this ambiguous?" LLM call gates the ask
-  rules_only             3.2's free rule detector gates the ask
-  self_consistency_only  3.3's N=5 sampling gates the ask
-  hybrid_no_gate         3.2 + 3.3 together gate the ask
-  full                   3.2 + 3.3, plus 3.4's (free, DB-only) divergence
-                         gate overriding the ask when the candidates don't
-                         actually disagree on results
+  rules_only             the free rule detector gates the ask
+  self_consistency_only  self-consistency's N=5 sampling gates the ask
+  hybrid_no_gate         rules + self-consistency together gate the ask
+  full                   rules + self-consistency, plus the (free, DB-only)
+                         divergence gate overriding the ask when the
+                         candidates don't actually disagree on results
 
 Sharing, per item:
   - the "unclarified" baseline generation (1 call) is reused by every
     config whose own detection doesn't end up asking anything -- if a
     config doesn't ask, its final SQL *is* baseline's, there's no reason
     to regenerate it
-  - the 5 self-consistency samples (Task 3.3) are generated once and
-    reused by all three configs that need them (self_consistency_only,
-    hybrid_no_gate, full) instead of 15 separate calls
-  - `full`'s divergence gate (3.4) executes those same 5 samples' distinct
+  - the 5 self-consistency samples are generated once and reused by all
+    three configs that need them (self_consistency_only, hybrid_no_gate,
+    full) instead of 15 separate calls
+  - `full`'s divergence gate executes those same 5 samples' distinct
     SQL variants against the DB -- no extra LLM calls, per divergence.py's
     own "pure function of already-generated SQL" design
   - a config only pays for a fresh "clarified" generation once, at the end
@@ -422,9 +422,10 @@ RESULTS_DIR = Path(__file__).resolve().parents[3] / "results"
 def write_ablation_report(run: AblationRun, path: Path = RESULTS_DIR / "ablation.md") -> Path:
     """Writes both the human-readable table at `path` and a `.raw.json`
     sibling with the full per-item, per-config detail (every question,
-    final SQL, and record) -- the aggregate table alone can't support
-    Task 4.5's per-ambiguity-type breakdown, bootstrap CIs, or qualitative
-    examples, all of which need to go back to individual items after the
+    final SQL, and record) -- the aggregate table alone can't support the
+    per-ambiguity-type breakdown, bootstrap CIs, or qualitative examples
+    the final results write-up needs, all of which need to go back to
+    individual items after the
     fact. Each real LLM call is billed once; losing this would mean paying
     for it again just to look at it a second way.
     """

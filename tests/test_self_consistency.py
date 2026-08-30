@@ -1,5 +1,5 @@
-"""Task 3.3: signature extraction and threshold-decision logic are pure and
-fast to test (no LLM calls). The real Done-when gate -- catching >=5 dev
+"""Self-consistency detection: signature extraction and threshold-decision
+logic are pure and fast to test (no LLM calls). The real target -- catching >=5 dev
 ambiguous items the rule detector missed, false-firing on <=15% of the
 unambiguous set -- is an expensive, LLM-driven calibration exercise done
 once via scripts/tune_self_consistency_threshold.py, not re-run on every

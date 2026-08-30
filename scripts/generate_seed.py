@@ -39,7 +39,7 @@ Faker.seed(SEED)
 
 # 18 months of order history. Fixed (not wall-clock) so the data -- and the
 # "last month" boundary trap below -- is reproducible forever. This doubles as
-# the intended anchor for "last month" in the semantic layer (Phase 0.4):
+# the intended anchor for "last month" in the semantic layer:
 # anchor to max(orders.created_at), not now().
 SEED_END_DATE = date(2025, 12, 31)
 START_DATE = date(2024, 7, 1)

@@ -12,8 +12,8 @@ slots the semantic layer doesn't model) appears in the text, then:
 
 That "2+ candidates -> unresolved" rule is deliberate, not a bug: it's
 exactly how "best" surfaces `candidates=[revenue_net, order_count,
-session_count]` per PLAN.md 3.1 -- the multiple matches *are* the ambiguity
-signal Task 3.2's rule-based detector consumes downstream.
+session_count]` -- the multiple matches *are* the ambiguity signal the
+rule-based detector consumes downstream.
 
 """
 

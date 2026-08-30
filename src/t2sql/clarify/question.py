@@ -1,8 +1,8 @@
-"""Question generation (Task 3.6, part 1).
+"""Question generation.
 
 Renders an ASK `ClarificationDecision` as a natural question with concrete,
 consequence-bearing options -- template-based, not LLM-generated, so this
-is free and deterministic. PLAN.md 3.6's target shape:
+is free and deterministic. Target shape:
 
     "Revenue (total spend), number of orders, or number of visits? Revenue
     and order count give quite different top-10 lists here -- only 3
@@ -14,8 +14,7 @@ candidate set is fixed and known, not open-ended). The second sentence is
 pulled from the actual `DivergenceReport`: the most-diverging pair among
 the offered options, described in whatever way fits its result shape (a
 row-overlap count for ranked lists, a value-vs-value comparison for
-scalars). Concreteness, not LLM fluency, is what PLAN.md calls out as the
-point here.
+scalars). Concreteness, not LLM fluency, is the point here.
 """
 
 from __future__ import annotations

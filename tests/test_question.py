@@ -1,4 +1,4 @@
-"""Task 3.6 (question rendering): template-based, deterministic, no LLM."""
+"""Question rendering: template-based, deterministic, no LLM."""
 
 import pytest
 

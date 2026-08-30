@@ -68,7 +68,7 @@ def test_different_row_counts_is_incorrect() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Task 4.1: run-level metrics, all against hand-constructed EvalRecord lists
+# Run-level metrics, all against hand-constructed EvalRecord lists
 # ---------------------------------------------------------------------------
 
 

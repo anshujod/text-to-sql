@@ -1,6 +1,5 @@
-"""Task 4.3: run the ablation across all 6 configs on a slice of the dev
-set, under a hard dollar ceiling enforced by BudgetGuard, and write
-results/ablation.md.
+"""Run the ablation across all 6 configs on a slice of the dev set, under a
+hard dollar ceiling enforced by BudgetGuard, and write results/ablation.md.
 
 Usage: uv run python scripts/run_ablation.py --n-items 25 --ceiling 1.20
 """

@@ -25,7 +25,7 @@ of confidence, falling through only when the previous one can't decide:
      literal substring but do share words once humanized)
 
 If none of the three produces an unambiguous winner, that's not a bug to
-paper over -- PLAN.md 4.2 asks for exactly this to be recorded as
+paper over -- exactly this gets recorded as
 `clarification_missed_target`, a real failure mode (the offered options
 didn't cover the truth) worth reporting alongside accuracy.
 """
