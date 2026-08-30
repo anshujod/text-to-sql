@@ -1,9 +1,5 @@
-"""Self-consistency detector (Task 3.3).
+"""Self-consistency detector.
 
-Catches ambiguity Task 3.2's rules don't know about: generate N candidate
-SQL queries at temperature 0.8, and if the model itself can't agree on what
-the question means, that disagreement *is* the ambiguity signal -- no rules
-required.
 
 Candidates are compared **semantically, not textually**: each is parsed
 with sqlglot into a `QuerySignature` (tables referenced, SELECT projection

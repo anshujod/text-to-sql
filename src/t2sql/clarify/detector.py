@@ -1,4 +1,4 @@
-"""Deterministic slot detector (Task 3.2).
+"""Deterministic slot detector
 
 Rule-based ambiguity detection over a parsed `Intent` (Task 3.1). Cheap,
 fast, testable, and runs before Task 3.3's LLM-based self-consistency
@@ -9,7 +9,7 @@ fire only when it's confident, not to catch everything.
 
 Seven rules, one per `AmbiguityType`:
 
-  METRIC        multiple metric candidates matched (Task 3.1's `intent.metric`)
+  METRIC        multiple metric candidates matched
   ENTITY        multiple entity candidates matched, restricted to pairs that
                 actually differ in grain (see DIFFERENT_GRAIN_ENTITY_PAIRS)
   GRAIN         a matched metric is an averaging metric (a mean, which is

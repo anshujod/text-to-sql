@@ -1,4 +1,4 @@
-"""Structured intent parser (Task 3.1).
+"""Structured intent parser.
 
 Parses a question into slots *before* any SQL gets generated. Each slot is
 resolved against the semantic layer the same way for every slot type: scan
@@ -15,10 +15,6 @@ exactly how "best" surfaces `candidates=[revenue_net, order_count,
 session_count]` per PLAN.md 3.1 -- the multiple matches *are* the ambiguity
 signal Task 3.2's rule-based detector consumes downstream.
 
-`dimensions` and `filters` can legitimately have more than one true match
-at once (a question can filter on both "cancelled" and "refunded"), so
-their multi-candidate case isn't "ambiguous" in the same sense -- see each
-slot's reason text.
 """
 
 from __future__ import annotations

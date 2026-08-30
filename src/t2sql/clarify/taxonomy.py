@@ -8,8 +8,7 @@ see docs/taxonomy.md for the verified numbers.
 
 Detection hints are lightweight lexical/structural cues for Task 3.2's
 rule-based detector -- they are a starting point, not a claim of completeness.
-Recall is expected to be mediocre; Task 3.3's self-consistency detector picks
-up what these miss.
+Recall is expected to be mediocre.
 """
 
 from __future__ import annotations
