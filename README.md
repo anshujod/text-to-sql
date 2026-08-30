@@ -17,7 +17,7 @@ Full numbers, per-ambiguity-type breakdown, confidence intervals, and worked exa
 
 *90-second GIF pending — see [`results/RESULTS.md`](results/RESULTS.md#qualitative-examples)
 for the same beats in writing in the meantime. Run it yourself: `make up && make demo`
-(reuses real, already-evaluated results — $0, no API key needed).*
+(reuses real, already-evaluated results — no API key needed).*
 
 ## Ablation (held-out test set, 80 items, run once)
 
@@ -30,9 +30,9 @@ for the same beats in writing in the meantime. Run it yourself: `make up && make
 | hybrid_no_gate | 25.0% | 50.0% | 0.78/0.76/0.77 | 30.0% | $0.0266 | ~23.6s |
 | **full** | 23.8% | **30.0%** | 0.78/0.76/0.77 | **30.0%** | $0.0260 | ~23.1s |
 
-`full` vs. `hybrid_no_gate` is the load-bearing row: the divergence gate (3.4) cuts
-over-asking from 50.0% to 30.0% with *no* silent-error cost. Every config ran on the same
-(cheap) model, `baseline` included — see [Limitations](#limitations).
+`full` vs. `hybrid_no_gate` is the load-bearing row: the divergence gate cuts over-asking
+from 50.0% to 30.0% with *no* silent-error cost. Every config ran on the same (cheap) model,
+`baseline` included — see [Limitations](#limitations).
 
 ## Ambiguity taxonomy
 
@@ -49,9 +49,9 @@ worked SQL examples for each in [`docs/taxonomy.md`](docs/taxonomy.md).
 | COMPARISON | growth relative to what baseline | ASK | "Which category is growing the fastest?" |
 | RESULT_SHAPE | how many rows in a ranked list | DEFAULT + disclose | "Show me our top customers by revenue." |
 
-(`default policy` is this taxonomy's documented intent per type, Task 2.1 — the actual
-decision engine, Task 3.5, scores every type uniformly against a measured divergence signal
-rather than switching on type; see [Limitations](#limitations).)
+(`default policy` is this taxonomy's documented intent per type — the actual decision engine
+scores every type uniformly against a measured divergence signal rather than switching on
+type; see [Limitations](#limitations).)
 
 ## Architecture
 
@@ -60,25 +60,25 @@ flowchart TD
     Q[Question] --> R[Schema retrieval<br/>embedding similarity over the semantic layer]
     R --> G0[Baseline generator<br/>LLM, silent defaults]
     R --> P[Intent parsing<br/>rule-based slots]
-    P --> D1[Rule detector<br/>3.2, $0]
-    P --> D2[Self-consistency detector<br/>3.3, N=5 samples]
-    D1 --> POL[Policy engine<br/>3.5]
+    P --> D1[Rule-based ambiguity detector]
+    P --> D2[Self-consistency detector<br/>N=5 samples]
+    D1 --> POL[Policy engine]
     D2 --> POL
-    POL -->|divergence signal ≥ threshold| DIV[Divergence gate<br/>3.4: execute K candidates,<br/>compare results, $0]
+    POL -->|divergence signal ≥ threshold| DIV[Divergence gate<br/>execute K candidates,<br/>compare results]
     DIV -->|really diverges| ASK[Ask the user]
     DIV -->|converges anyway| DEF[Default + disclose]
     POL -->|below threshold| DEF
     ASK --> RESOLVE[Fold answer into prompt,<br/>regenerate]
     DEF --> RESOLVE
     G0 -.baseline path, no clarification.-> VAL
-    RESOLVE --> VAL[AST validation<br/>1.3: schema check, LIMIT injection]
+    RESOLVE --> VAL[AST validation<br/>schema check, LIMIT injection]
     VAL --> EXEC[Execute, readonly<br/>timeout + row cap]
     EXEC --> OUT[Result + what was<br/>asked/assumed]
 ```
 
 Every stage left of the LLM boxes (retrieval, rule detection, the policy decision, the
-divergence gate, AST validation) is $0 — no model call. Only baseline generation, the 5
-self-consistency samples, and the post-clarification regeneration cost anything.
+divergence gate, AST validation) runs without a model call. Only baseline generation, the
+self-consistency samples, and the post-clarification regeneration touch the LLM.
 
 ## Quickstart
 
