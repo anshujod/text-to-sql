@@ -1,25 +1,30 @@
 """The demo interface.
 
-A terminal walkthrough of the clarification engine, built around 6 curated
-questions pulled straight from Task 4.5's real, already-paid-for held-out
-test-set evaluation (`data/demo_presets.json`, extracted from
-`results/test_ablation.raw.json`) -- not fresh LLM output. That's a
-deliberate choice, not a shortcut: this project's remaining budget is
-essentially $0, and every number this demo shows (the baseline SQL, the
-"clarified" SQL, whether the system asked) is real data from a real
-evaluation run, not a live regeneration for whatever a demo viewer happens
-to type.
+A terminal walkthrough of the clarification engine, with two modes:
 
-What *is* live, for every preset, at $0 (no LLM call): intent parsing,
+- **Presets (1-6)**: curated questions pulled straight from the real,
+  already-paid-for held-out test-set evaluation (`data/demo_presets.json`,
+  extracted from `results/test_ablation.raw.json`) -- not fresh LLM
+  output. Every number these show (the baseline SQL, the "clarified" SQL,
+  whether the system asked) is real data from that evaluation run, not a
+  live regeneration for whatever a viewer happens to type. Free to run
+  any number of times, no API key needed.
+- **Your own question (`c`)**: the real pipeline, live, on whatever you
+  type -- baseline generation, rule-based detection, and (if it asks) one
+  more real generation call with your answer folded in. This costs real
+  money (a couple of cheap-model calls per question) and is gated behind
+  an explicit cost estimate and confirmation before anything is sent.
+
+For presets, what's live at no cost either way: intent parsing,
 rule-based ambiguity detection, the rendered question text for items the
 real run asked about, and a divergence score computed by executing the
-dataset's own labeled candidate interpretations against the live DB (Task
-3.4's divergence test, reused for context here -- shown, not used to
-decide whether to ask, since it scores a different candidate set than the
-real run's self-consistency-driven gate did and can legitimately disagree
-with it). The SQL results tables are also executed live, every run,
-against the real seeded database. Whether each preset was actually asked
-about, and what the resolved SQL was, comes from the real evaluation run.
+dataset's own labeled candidate interpretations against the live DB
+(reused for context here -- shown, not used to decide whether to ask,
+since it scores a different candidate set than the real run's
+self-consistency-driven gate did and can legitimately disagree with it).
+The SQL results tables are also executed live, every run, against the
+real seeded database. Whether each preset was actually asked about, and
+what the resolved SQL was, comes from the real evaluation run.
 
 Run: `make demo` or `uv run python -m t2sql.demo`
 """
@@ -27,6 +32,7 @@ Run: `make demo` or `uv run python -m t2sql.demo`
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from rich.console import Console
@@ -42,10 +48,14 @@ from t2sql.clarify.taxonomy import AmbiguityType, get_spec
 from t2sql.db.connection import get_connection
 from t2sql.execution.executor import execute
 from t2sql.execution.models import ExecutionResult
+from t2sql.generation import generate_sql
+from t2sql.retrieval import build_schema_context
 from t2sql.semantic.loader import load_semantic_layer
+from t2sql.validation import validate_sql
 
 PRESETS_PATH = Path(__file__).resolve().parents[3] / "data" / "demo_presets.json"
 MAX_PREVIEW_ROWS = 5
+LIVE_MODEL = os.environ.get("OPENROUTER_DETECTION_MODEL")  # the cheap model -- live mode costs real money
 
 console = Console()
 
@@ -153,6 +163,83 @@ def _run_preset(preset: dict, layer, conn) -> None:
     console.rule(style="dim")
 
 
+def _run_live(question: str, layer, conn) -> None:
+    """Your own question, run for real: baseline generation, live rule
+    detection, and -- if the policy engine decides to ask -- one more real
+    generation call with your typed answer folded into the prompt. Unlike
+    the presets, this makes real API calls (1-2, on the cheap model), so
+    it's gated behind an explicit confirmation with a cost estimate first.
+    """
+    if not LIVE_MODEL:
+        console.print("[red]OPENROUTER_DETECTION_MODEL isn't set (check your .env) -- live mode needs it.[/red]")
+        return
+
+    console.print(
+        f"[yellow]This calls {LIVE_MODEL} for real -- 1 call (~$0.004), or 2 (~$0.008) if it "
+        "asks and you answer.[/yellow]"
+    )
+    try:
+        confirm = input("Proceed? (y/N): ").strip().lower()
+    except EOFError:
+        confirm = ""
+    if confirm != "y":
+        console.print("[dim]cancelled -- no call made[/dim]")
+        return
+
+    console.print()
+    context = build_schema_context(question, layer=layer, conn=conn)
+
+    console.print("[dim]Generating baseline SQL...[/dim]")
+    baseline_gen = generate_sql(question, context, model=LIVE_MODEL)
+    baseline_validation = validate_sql(baseline_gen.sql, conn=conn)
+    baseline_sql = baseline_validation.rewritten_sql if baseline_validation.ok else baseline_gen.sql
+
+    console.print("[bold]Baseline (no clarification):[/bold]")
+    console.print(_results_table("baseline result", execute(baseline_sql, conn=conn)))
+    for a in baseline_gen.assumptions:
+        console.print(f"  [dim]assumed: {a}[/dim]")
+
+    intent = parse_intent(question, layer=layer)
+    ambiguities = detect_ambiguities(intent, layer)
+    console.print()
+    console.print("[bold]Live detection (rule-based):[/bold]")
+    if ambiguities:
+        for a in ambiguities:
+            spec = get_spec(AmbiguityType(a.type))
+            console.print(f"  • [yellow]{a.type.value}[/yellow] (confidence={a.confidence:.2f}) -- {spec.summary}")
+    else:
+        console.print("  [dim]no rule-based ambiguity flagged[/dim]")
+
+    session = SessionState()
+    decision = decide_clarification(ambiguities, session, config=PolicyConfig())
+
+    console.print()
+    if decision.action == ClarificationAction.ASK:
+        question_text = render_clarification_question(decision)
+        console.print(Panel(question_text, title="[bold]Clarification question[/bold]", border_style="magenta"))
+        try:
+            answer = input("  > your answer: ").strip()
+        except EOFError:
+            answer = ""
+        if answer:
+            console.print("[dim]Regenerating with your answer (1 more real call)...[/dim]")
+            augmented = f"{question}\n\n(Clarification from the user: {answer})"
+            resolved_gen = generate_sql(augmented, context, model=LIVE_MODEL)
+            resolved_validation = validate_sql(resolved_gen.sql, conn=conn)
+            resolved_sql = resolved_validation.rewritten_sql if resolved_validation.ok else resolved_gen.sql
+            console.print()
+            console.print("[bold]Resolved:[/bold]")
+            console.print(_results_table("clarified result", execute(resolved_sql, conn=conn)))
+        else:
+            console.print("[dim]no answer given -- skipping regeneration[/dim]")
+    else:
+        console.print(
+            Panel(decision.reason or "below threshold", title="[bold]System declined to ask[/bold]", border_style="green")
+        )
+        for line in decision.disclosure_text:
+            console.print(f"  [dim]{line}[/dim]")
+
+
 def main() -> None:
     presets = _load_presets()
     layer = load_semantic_layer()
@@ -161,7 +248,8 @@ def main() -> None:
         Panel(
             "Text-to-SQL with a clarification engine\n\n"
             "6 real questions from this project's held-out evaluation, showing the "
-            "clarification round-trip and a baseline-vs-clarified comparison for each.",
+            "clarification round-trip and a baseline-vs-clarified comparison for each -- "
+            "free to run. Or ask your own question with 'c' (real API calls, costs a little).",
             title="[bold cyan]Demo[/bold cyan]",
             border_style="cyan",
         )
@@ -173,14 +261,27 @@ def main() -> None:
             for i, p in enumerate(presets, 1):
                 types = "/".join(p["ambiguity_types"])
                 console.print(f"  [bold]{i}[/bold]. [{types}] {p['question']}")
+            console.print("  [bold]c[/bold]. ask your own question (real API calls, costs money)")
             console.print("  [bold]q[/bold]. quit")
             console.print()
             try:
-                choice = input("Pick a question (1-6, q): ").strip().lower()
+                choice = input("Pick a question (1-6, c, q): ").strip().lower()
             except EOFError:
                 break
             if choice == "q":
                 break
+            if choice == "c":
+                console.print()
+                try:
+                    custom_question = input("Your question: ").strip()
+                except EOFError:
+                    custom_question = ""
+                if custom_question:
+                    console.print()
+                    _run_live(custom_question, layer, conn)
+                    console.print()
+                    console.rule(style="dim")
+                continue
             if not choice.isdigit() or not (1 <= int(choice) <= len(presets)):
                 console.print("[red]invalid choice[/red]")
                 continue

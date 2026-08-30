@@ -16,8 +16,10 @@ Full numbers, per-ambiguity-type breakdown, confidence intervals, and worked exa
 ## Demo
 
 *90-second GIF pending — see [`results/RESULTS.md`](results/RESULTS.md#qualitative-examples)
-for the same beats in writing in the meantime. Run it yourself: `make up && make demo`
-(reuses real, already-evaluated results — no API key needed).*
+for the same beats in writing in the meantime. Run it yourself: `make up && make demo` — 6
+curated questions replay real, already-evaluated results for free (no API key needed), or
+type your own question for a live run against a real model (a couple of cheap-model calls,
+with a cost estimate and confirmation before anything is sent).*
 
 ## Ablation (held-out test set, 80 items, run once)
 
