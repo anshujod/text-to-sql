@@ -95,7 +95,7 @@ again. Full construction method and label definitions: [`data/DATASET.md`](data/
   breakdown, confidence intervals, qualitative examples
 - [`docs/FAILURE_ANALYSIS.md`](docs/FAILURE_ANALYSIS.md) — every test-set failure,
   categorized and counted, plus what a production version would need
-- [`docs/BLOG_POST.md`](docs/BLOG_POST.md) — the write-up: the over-asking problem, the
+- [`docs/BLOG_POST_MEDIUM.md`](docs/BLOG_POST_MEDIUM.md) — the write-up: the over-asking problem, the
   divergence insight, and one thing that didn't work
 - [`docs/taxonomy.md`](docs/taxonomy.md) — worked SQL examples for all seven ambiguity types
 - [`data/DATASET.md`](data/DATASET.md) — dataset construction method and label definitions
